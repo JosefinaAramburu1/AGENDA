@@ -142,6 +142,8 @@
     min-width:14px; height:14px; padding:0 3px; border-radius:999px; line-height:14px; cursor:pointer;
   }
   .grid-head .cell:first-child{border-left:none;}
+  .grid-head-date{font-size:10px; font-weight:600; color:var(--ink-faint); margin-top:2px; text-transform:none;}
+  .grid-head .cell.today .grid-head-date{color:var(--now);}
   .hour-col{display:flex; flex-direction:column;}
   .hour-label{
     height:56px; font-size:10.5px; color:var(--ink-faint); text-align:right; padding-right:6px;
@@ -217,9 +219,14 @@
     display:flex; align-items:center; justify-content:center;
   }
   .month-cell.today .month-day-num{background:var(--now); color:#fff;}
-  .month-dots{display:flex; flex-wrap:wrap; gap:3px;}
-  .month-dot{width:7px; height:7px; border-radius:50%; flex:none;}
-  .month-dot.study{background:none; border:1.5px solid;}
+  .month-items{display:flex; flex-direction:column; gap:2px; overflow:hidden; width:100%;}
+  .month-item{
+    font-size:9.5px; font-weight:700; color:#fff; padding:1.5px 4px; border-radius:4px;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.5;
+  }
+  .month-item.done{opacity:.45; text-decoration:line-through;}
+  .month-item.study{background:none; border:1px dashed; color:var(--ink); font-weight:600;}
+  .month-more{font-size:9px; color:var(--ink-faint); font-weight:600; padding-left:2px;}
   .day-detail{
     background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
     padding:14px; margin:16px 4px 4px;
@@ -232,9 +239,10 @@
   .day-detail-item:last-of-type{border-bottom:none;}
 
   @media (max-width:560px){
-    .month-cell{min-height:52px; padding:3px; gap:2px;}
+    .month-cell{min-height:58px; padding:3px; gap:2px;}
     .month-day-num{font-size:11px; width:17px; height:17px;}
-    .month-dot{width:6px; height:6px;}
+    .month-item{font-size:8px; padding:1px 3px;}
+    .month-more{font-size:8px;}
   }
 
   /* ================= TAREAS ================= */
@@ -324,6 +332,10 @@
   }
   .mini-class-row .t{font-weight:700; color:var(--ink-soft); font-size:12.5px; min-width:88px;}
   .link-btn{background:none; border:none; color:var(--accent); font-weight:700; font-size:13px; padding:0;}
+  .attendance-warning{
+    display:flex; align-items:center; gap:8px; background:#FBEAE7; border:1px solid var(--danger); color:var(--danger);
+    border-radius:10px; padding:10px 12px; margin:10px 4px 0; font-size:13px; font-weight:600;
+  }
 
   /* ================= FAB (nota rápida) ================= */
   .fab{
@@ -395,6 +407,7 @@
   <!-- ================= HOY ================= -->
   <section class="view active" id="view-hoy">
     <div id="hoyNowCard"></div>
+    <div id="hoyAttendanceWarnings"></div>
     <div class="section-title">Resto del día</div>
     <div id="hoyRestList"></div>
     <div class="section-title">Para no perderte</div>
@@ -482,6 +495,9 @@
       </select>
       <button class="btn btn-primary" id="tk-add">+ Agregar</button>
     </div>
+    <div class="field" style="margin:14px 4px 0;">
+      <input type="text" id="tk-search" placeholder="🔎 Buscar tarea por título...">
+    </div>
     <div id="tasksList"></div>
   </section>
 
@@ -489,7 +505,9 @@
   <section class="view" id="view-notas">
     <div class="legend" id="notesSubjectFilter" style="padding-top:14px;"></div>
     <div class="week-toolbar" style="margin-top:0;">
-      <div></div>
+      <div class="field" style="flex:1 1 200px;">
+        <input type="text" id="notes-search" placeholder="🔎 Buscar en tus notas...">
+      </div>
       <button class="btn btn-primary" id="btnNewNote">+ Nueva nota</button>
     </div>
     <div id="noteEditorWrap"></div>
@@ -551,7 +569,9 @@ import { createClient } from '@supabase/supabase-js';
     editingNoteId: null,
     globalSubjectFilter: null,
     monthCursor: null, // se inicializa en init() al primer día del mes actual
-    selectedMonthDate: null
+    selectedMonthDate: null,
+    taskSearch: '',
+    noteSearch: ''
   };
 
   function uid(prefix){
@@ -681,6 +701,11 @@ import { createClient } from '@supabase/supabase-js';
     var mm = (d.getMonth()+1); var dd = d.getDate();
     return d.getFullYear() + '-' + (mm<10?'0':'')+mm + '-' + (dd<10?'0':'')+dd;
   }
+  // Día de semana (0=Lunes...5=Sábado, -1=Domingo) que corresponde a una fecha puntual (para chequear superposición con el horario fijo)
+  function weekdayColumnForDate(iso){
+    var jsDay = parseISODate(iso).getDay();
+    return jsDay === 0 ? -1 : jsDay - 1;
+  }
   // Lunes de la semana actual (real), para ubicar sesiones de estudio con fecha puntual
   function currentWeekMonday(){
     var d = new Date(); d.setHours(0,0,0,0);
@@ -713,7 +738,7 @@ import { createClient } from '@supabase/supabase-js';
     for (var i=0;i<evs.length;i++){
       if (nowMin >= timeToMinutes(evs[i].start) && nowMin < timeToMinutes(evs[i].end)) return evs[i].subjectId;
     }
-    return (state.subjects[0] && state.subjects[0].id) || null;
+    return null; // no hay clase corriendo ahora: no forzamos ninguna materia
   }
 
   function renderHoy(){
@@ -744,6 +769,29 @@ import { createClient } from '@supabase/supabase-js';
       card.innerHTML = '<div class="now-card idle"><div class="tag">Hoy</div><h2>Sin más clases</h2>' +
         '<div class="sub">Ya terminaste el día o no tenés cursada hoy.</div></div>';
     }
+
+    var attWrap = document.getElementById('hoyAttendanceWarnings');
+    attWrap.innerHTML = '';
+    var warnedSubjects = {};
+    evs.filter(function(ev){ return !ev.type || ev.type === 'clase'; }).forEach(function(ev){
+      if (warnedSubjects[ev.subjectId]) return;
+      warnedSubjects[ev.subjectId] = true;
+      var s = subjectById(ev.subjectId);
+      if (!s || !s.totalClasses) return;
+      var allowed = Math.floor(s.totalClasses * 0.25);
+      var remaining = allowed - s.absences;
+      if (remaining > 1) return;
+      var box = document.createElement('div');
+      box.className = 'attendance-warning';
+      if (remaining < 0){
+        box.textContent = '⚠️ Ya superaste el límite de faltas en ' + s.name + '.';
+      } else if (remaining === 0){
+        box.textContent = '⚠️ Ojo: si faltás hoy a ' + s.name + ', te quedás sin margen de faltas.';
+      } else {
+        box.textContent = '⚠️ Te queda 1 sola falta disponible en ' + s.name + '.';
+      }
+      attWrap.appendChild(box);
+    });
 
     var restList = document.getElementById('hoyRestList');
     restList.innerHTML = '';
@@ -837,14 +885,25 @@ import { createClient } from '@supabase/supabase-js';
   }
 
   // ---------- SEMANA ----------
-  function fillSubjectSelect(sel){
+  function fillSubjectSelect(sel, includeGeneral){
     sel.innerHTML = '';
+    if (includeGeneral){
+      var generalOpt = document.createElement('option');
+      generalOpt.value = 'general';
+      generalOpt.textContent = 'General (sin materia)';
+      sel.appendChild(generalOpt);
+    }
     state.subjects.forEach(function(s){
       var opt = document.createElement('option');
       opt.value = s.id;
       opt.textContent = s.name;
       sel.appendChild(opt);
     });
+  }
+
+  function subjectDisplay(id){
+    if (id === 'general') return { color: '#9AA1B0', name: 'General' };
+    return subjectById(id) || { color: '#999', name: '—' };
   }
 
   function todayColumnIndex(){
@@ -867,7 +926,7 @@ import { createClient } from '@supabase/supabase-js';
     DAY_NAMES.forEach(function(name, i){
       var c = document.createElement('div');
       c.className = 'cell' + (i === todayIdx ? ' today' : '');
-      c.textContent = name;
+      c.innerHTML = name + '<div class="grid-head-date">' + fmtDate(weekDateForColumn(i)) + '</div>';
       headWrap.appendChild(c);
     });
     grid.appendChild(headWrap);
@@ -965,7 +1024,12 @@ import { createClient } from '@supabase/supabase-js';
       btn.addEventListener('click', function(e){
         e.stopPropagation();
         var id = btn.getAttribute('data-del-event');
-        state.events = state.events.filter(function(ev){ return ev.id !== id; });
+        var ev = state.events.find(function(x){ return x.id === id; });
+        if (!ev) return;
+        var subj = subjectById(ev.subjectId);
+        var label = (subj ? subj.name : 'este bloque') + ' (' + ev.start + '–' + ev.end + ')';
+        if (!confirm('¿Eliminar ' + label + '?')) return;
+        state.events = state.events.filter(function(x){ return x.id !== id; });
         save();
         renderWeekGrid();
         renderMonth();
@@ -1008,12 +1072,39 @@ import { createClient } from '@supabase/supabase-js';
         alert('La hora de fin tiene que ser después de la hora de inicio.');
         return;
       }
+      var newStartMin = timeToMinutes(start), newEndMin = timeToMinutes(end);
+      function overlapsExisting(ev){
+        return timeToMinutes(ev.start) < newEndMin && newStartMin < timeToMinutes(ev.end);
+      }
+
       if (type === 'estudio'){
         var date = document.getElementById('ev-date').value;
         if (!date){ alert('Elegí una fecha para la sesión de estudio.'); return; }
+        var wd = weekdayColumnForDate(date);
+        var conflict = state.events.find(function(ev){
+          if (ev.type === 'estudio') return ev.date === date && overlapsExisting(ev);
+          return ev.day === wd && overlapsExisting(ev);
+        });
+        if (conflict){
+          var conflictSubj = subjectById(conflict.subjectId);
+          var proceed = confirm(
+            'Ya tenés "' + (conflictSubj ? conflictSubj.name : 'algo') + '" (' + conflict.start + '–' + conflict.end + ') a esa hora ese día.\n¿Guardar igual?'
+          );
+          if (!proceed) return;
+        }
         state.events.push({ id: uid('ev'), subjectId: subjectId, type: 'estudio', date: date, start: start, end: end, title: title });
       } else {
         var day = parseInt(document.getElementById('ev-day').value,10);
+        var conflictClase = state.events.find(function(ev){
+          return (!ev.type || ev.type === 'clase') && ev.day === day && overlapsExisting(ev);
+        });
+        if (conflictClase){
+          var conflictSubjC = subjectById(conflictClase.subjectId);
+          var proceedC = confirm(
+            'Ya tenés "' + (conflictSubjC ? conflictSubjC.name : 'algo') + '" (' + conflictClase.start + '–' + conflictClase.end + ') ese día a esa hora.\n¿Guardar igual?'
+          );
+          if (!proceedC) return;
+        }
         state.events.push({ id: uid('ev'), subjectId: subjectId, type: 'clase', day: day, start: start, end: end, title: title });
       }
       save();
@@ -1092,8 +1183,8 @@ import { createClient } from '@supabase/supabase-js';
       num.textContent = dt.getDate();
       cell.appendChild(num);
 
-      var dots = document.createElement('div');
-      dots.className = 'month-dots';
+      var itemsWrap = document.createElement('div');
+      itemsWrap.className = 'month-items';
 
       var dayTasks = state.tasks.filter(function(t){
         return t.dueDate === iso && (!ui.globalSubjectFilter || t.subjectId === ui.globalSubjectFilter);
@@ -1102,23 +1193,39 @@ import { createClient } from '@supabase/supabase-js';
         return ev.type === 'estudio' && ev.date === iso && (!ui.globalSubjectFilter || ev.subjectId === ui.globalSubjectFilter);
       });
 
-      dayTasks.slice(0,4).forEach(function(t){
-        var subj = subjectById(t.subjectId) || { color:'#999' };
-        var dot = document.createElement('span');
-        dot.className = 'month-dot';
-        dot.style.background = subj.color;
-        dot.style.opacity = t.done ? '.4' : '1';
-        dots.appendChild(dot);
-      });
-      dayStudy.slice(0,4).forEach(function(ev){
-        var subj = subjectById(ev.subjectId) || { color:'#999' };
-        var dot = document.createElement('span');
-        dot.className = 'month-dot study';
-        dot.style.borderColor = subj.color;
-        dots.appendChild(dot);
-      });
+      var combined = [];
+      dayTasks.forEach(function(t){ combined.push({ kind:'task', data:t }); });
+      dayStudy.forEach(function(ev){ combined.push({ kind:'estudio', data:ev }); });
 
-      cell.appendChild(dots);
+      var MAX_ITEMS_SHOWN = 2;
+      combined.slice(0, MAX_ITEMS_SHOWN).forEach(function(item){
+        var chip = document.createElement('div');
+        if (item.kind === 'task'){
+          var t = item.data;
+          var subj = subjectDisplay(t.subjectId);
+          chip.className = 'month-item' + (t.done ? ' done' : '');
+          chip.style.background = subj.color;
+          chip.title = t.title + (t.priority === 'alta' && !t.done ? ' (prioridad alta)' : '');
+          chip.textContent = (t.priority === 'alta' && !t.done ? '★ ' : '') + t.title;
+        } else {
+          var ev = item.data;
+          var subjE = subjectDisplay(ev.subjectId);
+          chip.className = 'month-item study';
+          chip.style.borderColor = subjE.color;
+          chip.style.color = subjE.color;
+          chip.title = '📖 ' + subjE.name + (ev.title ? ' · '+ev.title : '');
+          chip.textContent = '📖 ' + subjE.name;
+        }
+        itemsWrap.appendChild(chip);
+      });
+      if (combined.length > MAX_ITEMS_SHOWN){
+        var more = document.createElement('div');
+        more.className = 'month-more';
+        more.textContent = '+' + (combined.length - MAX_ITEMS_SHOWN) + ' más';
+        itemsWrap.appendChild(more);
+      }
+
+      cell.appendChild(itemsWrap);
       cell.addEventListener('click', function(){
         ui.selectedMonthDate = iso;
         renderMonth();
@@ -1156,11 +1263,13 @@ import { createClient } from '@supabase/supabase-js';
       panel.appendChild(empty);
     } else {
       dayTasks.forEach(function(t){
-        var subj = subjectById(t.subjectId) || { color:'#999', name:'—' };
+        var subj = subjectDisplay(t.subjectId);
         var row = document.createElement('div');
         row.className = 'day-detail-item';
         row.innerHTML = '<span class="dot" style="background:'+subj.color+'"></span> 🗒️ ' +
-          escapeHtml(t.title) + ' · ' + escapeHtml(subj.name) + (t.done ? ' · completada' : '');
+          escapeHtml(t.title) + ' · ' + escapeHtml(subj.name) +
+          (t.priority === 'alta' && !t.done ? ' · <span class="badge-alta">● prioridad alta</span>' : '') +
+          (t.done ? ' · completada' : '');
         panel.appendChild(row);
       });
       dayStudy.forEach(function(ev){
@@ -1181,7 +1290,7 @@ import { createClient } from '@supabase/supabase-js';
     addTaskBtn.textContent = '+ Tarea este día';
     addTaskBtn.addEventListener('click', function(){
       switchView('tareas');
-      fillSubjectSelect(document.getElementById('tk-subject'));
+      fillSubjectSelect(document.getElementById('tk-subject'), true);
       document.getElementById('tk-date').value = iso;
       document.getElementById('tk-title').focus();
     });
@@ -1208,18 +1317,24 @@ import { createClient } from '@supabase/supabase-js';
 
   // ---------- TAREAS ----------
   function renderTasks(){
-    fillSubjectSelect(document.getElementById('tk-subject'));
+    fillSubjectSelect(document.getElementById('tk-subject'), true);
     var list = document.getElementById('tasksList');
     list.innerHTML = '';
 
     var sourceTasks = ui.globalSubjectFilter
       ? state.tasks.filter(function(t){ return t.subjectId === ui.globalSubjectFilter; })
       : state.tasks;
+    if (ui.taskSearch){
+      var q = ui.taskSearch.toLowerCase();
+      sourceTasks = sourceTasks.filter(function(t){ return t.title.toLowerCase().indexOf(q) !== -1; });
+    }
 
     if (sourceTasks.length === 0){
-      list.innerHTML = ui.globalSubjectFilter
-        ? '<div class="empty-state">No hay entregas cargadas para esta materia.</div>'
-        : '<div class="empty-state"><span class="big">🗒️</span>Todavía no cargaste entregas.<br>Agregá la primera arriba.</div>';
+      list.innerHTML = ui.taskSearch
+        ? '<div class="empty-state">No hay tareas que coincidan con "'+escapeHtml(ui.taskSearch)+'".</div>'
+        : (ui.globalSubjectFilter
+          ? '<div class="empty-state">No hay entregas cargadas para esta materia.</div>'
+          : '<div class="empty-state"><span class="big">🗒️</span>Todavía no cargaste entregas.<br>Agregá la primera arriba.</div>');
       return;
     }
 
@@ -1261,7 +1376,7 @@ import { createClient } from '@supabase/supabase-js';
   }
 
   function renderTaskRow(t, groupKey){
-    var subj = subjectById(t.subjectId) || { color: '#999', name: '—' };
+    var subj = subjectDisplay(t.subjectId);
     var row = document.createElement('div');
     row.className = 'task-row' + (t.done ? ' done' : '');
     row.style.borderLeftColor = subj.color;
@@ -1300,6 +1415,7 @@ import { createClient } from '@supabase/supabase-js';
     del.innerHTML = '✕';
     del.title = 'Eliminar';
     del.addEventListener('click', function(){
+      if (!confirm('¿Eliminar la tarea "' + t.title + '"?')) return;
       state.tasks = state.tasks.filter(function(x){ return x.id !== t.id; });
       save();
       renderTasks();
@@ -1313,6 +1429,10 @@ import { createClient } from '@supabase/supabase-js';
   }
 
   function setupTaskForm(){
+    document.getElementById('tk-search').addEventListener('input', function(){
+      ui.taskSearch = this.value.trim();
+      renderTasks();
+    });
     document.getElementById('tk-add').addEventListener('click', function(){
       var subjectId = document.getElementById('tk-subject').value;
       var title = document.getElementById('tk-title').value.trim();
@@ -1332,9 +1452,21 @@ import { createClient } from '@supabase/supabase-js';
   function renderNotesFilter(){
     var wrap = document.getElementById('notesSubjectFilter');
     wrap.innerHTML = '';
-    if (ui.notesSubjectFilter === null && state.subjects.length){
-      ui.notesSubjectFilter = state.subjects[0].id;
+    if (!ui.notesSubjectFilter){
+      ui.notesSubjectFilter = 'general';
     }
+
+    var generalChip = document.createElement('button');
+    generalChip.className = 'chip';
+    generalChip.style.border = (ui.notesSubjectFilter === 'general') ? '1.5px solid var(--ink)' : '1px solid var(--border)';
+    generalChip.innerHTML = '<span class="dot" style="background:var(--ink-faint)"></span>General';
+    generalChip.addEventListener('click', function(){
+      ui.notesSubjectFilter = 'general';
+      ui.editingNoteId = null;
+      renderNotes();
+    });
+    wrap.appendChild(generalChip);
+
     state.subjects.forEach(function(s){
       var chip = document.createElement('button');
       chip.className = 'chip';
@@ -1363,8 +1495,19 @@ import { createClient } from '@supabase/supabase-js';
     var notesForSubject = state.notes.filter(function(n){ return n.subjectId === ui.notesSubjectFilter; })
       .sort(function(a,b){ return b.updatedAt - a.updatedAt; });
 
+    if (ui.noteSearch){
+      var q = ui.noteSearch.toLowerCase();
+      notesForSubject = notesForSubject.filter(function(n){
+        return (n.title||'').toLowerCase().indexOf(q) !== -1 || (n.content||'').toLowerCase().indexOf(q) !== -1;
+      });
+    }
+
     if (notesForSubject.length === 0 && ui.editingNoteId === null){
-      list.innerHTML = '<div class="empty-state"><span class="big">✏️</span>No hay notas para esta materia todavía.</div>';
+      list.innerHTML = ui.noteSearch
+        ? '<div class="empty-state">No hay notas que coincidan con "'+escapeHtml(ui.noteSearch)+'".</div>'
+        : (ui.notesSubjectFilter === 'general'
+          ? '<div class="empty-state"><span class="big">✏️</span>No hay notas generales todavía.</div>'
+          : '<div class="empty-state"><span class="big">✏️</span>No hay notas para esta materia todavía.</div>');
       return;
     }
 
@@ -1386,13 +1529,20 @@ import { createClient } from '@supabase/supabase-js';
 
   function renderNoteEditor(container){
     var isNew = ui.editingNoteId === 'new';
-    var note = isNew ? { title: '', content: '' } : state.notes.find(function(n){ return n.id === ui.editingNoteId; });
+    var note = isNew
+      ? { subjectId: ui.notesSubjectFilter, title: '', content: '' }
+      : state.notes.find(function(n){ return n.id === ui.editingNoteId; });
     if (!note){ ui.editingNoteId = null; return; }
 
     var box = document.createElement('div');
     box.className = 'note-editor';
+    var subjectOptions = '<option value="general"' + (note.subjectId === 'general' ? ' selected' : '') + '>General (sin materia)</option>' +
+      state.subjects.map(function(s){
+        return '<option value="'+s.id+'"' + (note.subjectId === s.id ? ' selected' : '') + '>'+escapeHtml(s.name)+'</option>';
+      }).join('');
     box.innerHTML =
-      '<div class="field"><label>Título</label><input type="text" id="note-title" value="'+escapeHtml(note.title)+'" placeholder="Título de la nota"></div>' +
+      '<div class="field"><label>Materia</label><select id="note-subject">'+subjectOptions+'</select></div>' +
+      '<div class="field" style="margin-top:10px;"><label>Título</label><input type="text" id="note-title" value="'+escapeHtml(note.title)+'" placeholder="Título de la nota"></div>' +
       '<div class="field" style="margin-top:10px;"><label>Contenido</label><textarea id="note-content" placeholder="Escribí acá...">'+escapeHtml(note.content)+'</textarea></div>' +
       '<div class="row-gap">' +
         '<button class="btn btn-primary" id="note-save">Guardar</button>' +
@@ -1404,14 +1554,16 @@ import { createClient } from '@supabase/supabase-js';
     document.getElementById('note-save').addEventListener('click', function(){
       var title = document.getElementById('note-title').value.trim();
       var content = document.getElementById('note-content').value.trim();
+      var subjectId = document.getElementById('note-subject').value;
       if (!title && !content) return;
       if (isNew){
-        state.notes.push({ id: uid('note'), subjectId: ui.notesSubjectFilter, title: title, content: content, updatedAt: Date.now() });
+        state.notes.push({ id: uid('note'), subjectId: subjectId, title: title, content: content, updatedAt: Date.now() });
       } else {
-        note.title = title; note.content = content; note.updatedAt = Date.now();
+        note.title = title; note.content = content; note.subjectId = subjectId; note.updatedAt = Date.now();
       }
       save();
       ui.editingNoteId = null;
+      ui.notesSubjectFilter = subjectId;
       renderNotes();
     });
     document.getElementById('note-cancel').addEventListener('click', function(){
@@ -1420,6 +1572,7 @@ import { createClient } from '@supabase/supabase-js';
     });
     if (!isNew){
       document.getElementById('note-delete').addEventListener('click', function(){
+        if (!confirm('¿Eliminar esta nota? No se puede deshacer.')) return;
         state.notes = state.notes.filter(function(n){ return n.id !== note.id; });
         save();
         ui.editingNoteId = null;
@@ -1429,8 +1582,12 @@ import { createClient } from '@supabase/supabase-js';
   }
 
   function setupNotes(){
+    document.getElementById('notes-search').addEventListener('input', function(){
+      ui.noteSearch = this.value.trim();
+      renderNotes();
+    });
     document.getElementById('btnNewNote').addEventListener('click', function(){
-      if (!ui.notesSubjectFilter && state.subjects.length) ui.notesSubjectFilter = state.subjects[0].id;
+      if (!ui.notesSubjectFilter) ui.notesSubjectFilter = 'general';
       ui.editingNoteId = 'new';
       renderNotes();
     });
@@ -1484,6 +1641,12 @@ import { createClient } from '@supabase/supabase-js';
       del.title = 'Eliminar materia';
       del.addEventListener('click', function(){
         if (state.subjects.length <= 1) return;
+        var sure = confirm(
+          '¿Eliminar "' + s.name + '"?\n\n' +
+          'Se van a borrar también todas sus clases, sesiones de estudio, tareas y notas. ' +
+          'Esta acción no se puede deshacer.'
+        );
+        if (!sure) return;
         state.subjects = state.subjects.filter(function(x){ return x.id !== s.id; });
         state.events = state.events.filter(function(e){ return e.subjectId !== s.id; });
         state.tasks = state.tasks.filter(function(t){ return t.subjectId !== s.id; });
@@ -1644,8 +1807,7 @@ import { createClient } from '@supabase/supabase-js';
   function setupQuickNote(){
     document.getElementById('quickNoteBtn').addEventListener('click', function(){
       var subjId = currentSubjectId();
-      if (!subjId) return;
-      ui.notesSubjectFilter = subjId;
+      ui.notesSubjectFilter = subjId || 'general';
       ui.editingNoteId = 'new';
       switchView('notas');
       renderNotes();
