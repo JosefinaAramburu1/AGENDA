@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>Mi Semestre</title>
+<title>Mi Agenda Personal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#FAFAF7;
+    --bg:#FDF1F4;
     --surface:#FFFFFF;
     --ink:#22273A;
     --ink-soft:#6B7280;
     --ink-faint:#9AA1B0;
-    --border:#E7E3DA;
+    --border:#F0DCE3;
     --accent:#2F6F5E;
     --accent-soft:#E5F1EC;
     --danger:#C24B3F;
@@ -137,6 +137,10 @@
     border-bottom:1px solid var(--border); border-left:1px solid var(--border); background:var(--surface);
     position:sticky; top:0;
   }
+  .day-badge{
+    position:absolute; top:4px; right:4px; background:var(--danger); color:#fff; font-size:9px; font-weight:700;
+    min-width:14px; height:14px; padding:0 3px; border-radius:999px; line-height:14px; cursor:pointer;
+  }
   .grid-head .cell:first-child{border-left:none;}
   .hour-col{display:flex; flex-direction:column;}
   .hour-label{
@@ -174,6 +178,64 @@
     font-size:12px; line-height:1; padding:2px;
   }
   .event-block:hover .del{opacity:.85;}
+  .event-block.study-block{
+    color:var(--ink); box-shadow:none; border:2px dashed; background-image:none !important;
+  }
+  .event-block.study-block small{opacity:.75;}
+  .event-block.study-block .del{color:var(--ink); opacity:0;}
+  .event-block.study-block:hover .del{opacity:.7;}
+
+  /* ================= MES ================= */
+  .month-toolbar{display:flex; align-items:center; justify-content:space-between; margin:16px 4px 4px; gap:10px;}
+  .month-nav-btn{
+    background:none; border:1px solid var(--border); border-radius:8px; padding:6px 12px;
+    font-weight:700; font-size:15px; color:var(--ink);
+  }
+  .month-nav-btn:hover{background:var(--surface);}
+  .month-label{font-family:var(--font-display); font-weight:700; font-size:16px; text-transform:capitalize;}
+  .month-grid-wrap{
+    margin-top:14px; border-radius:var(--radius); border:1px solid var(--border);
+    background:var(--surface); overflow:hidden;
+  }
+  .month-head-row{display:grid; grid-template-columns:repeat(7,1fr); border-bottom:1px solid var(--border);}
+  .month-head-row .cell{
+    padding:8px 4px; text-align:center; font-weight:700; font-size:11.5px;
+    font-family:var(--font-display); color:var(--ink-soft);
+  }
+  .month-grid{display:grid; grid-template-columns:repeat(7,1fr);}
+  .month-cell{
+    min-height:72px; border-top:1px solid var(--border); border-left:1px solid var(--border);
+    padding:5px; position:relative; cursor:pointer; display:flex; flex-direction:column; gap:4px;
+    transition:background .12s;
+  }
+  .month-cell:nth-child(7n+1){border-left:none;}
+  .month-cell:hover{background:var(--bg);}
+  .month-cell.outside{color:var(--ink-faint); background:var(--bg);}
+  .month-cell.selected{background:var(--accent-soft);}
+  .month-day-num{
+    font-size:12px; font-weight:700; width:20px; height:20px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .month-cell.today .month-day-num{background:var(--now); color:#fff;}
+  .month-dots{display:flex; flex-wrap:wrap; gap:3px;}
+  .month-dot{width:7px; height:7px; border-radius:50%; flex:none;}
+  .month-dot.study{background:none; border:1.5px solid;}
+  .day-detail{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px; margin:16px 4px 4px;
+  }
+  .day-detail h4{margin:0 0 10px; font-family:var(--font-display); font-size:15px;}
+  .day-detail-item{
+    font-size:13px; padding:7px 0; border-bottom:1px solid var(--border);
+    display:flex; gap:8px; align-items:center;
+  }
+  .day-detail-item:last-of-type{border-bottom:none;}
+
+  @media (max-width:560px){
+    .month-cell{min-height:52px; padding:3px; gap:2px;}
+    .month-day-num{font-size:11px; width:17px; height:17px;}
+    .month-dot{width:6px; height:6px;}
+  }
 
   /* ================= TAREAS ================= */
   .task-group-title{font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint); margin:20px 6px 8px;}
@@ -290,7 +352,7 @@
 
 <div id="authGate" class="auth-gate">
   <div class="auth-box">
-    <h2>Mi Semestre</h2>
+    <h2>Mi Agenda Personal</h2>
     <p id="authSubtitle">Iniciá sesión para ver tus materias</p>
     <div class="field">
       <label>Email</label>
@@ -311,7 +373,7 @@
 
   <header class="top">
     <div class="brand">
-      <h1>Mi Semestre</h1>
+      <h1>Mi Agenda Personal</h1>
       <div class="today" id="todayLabel"></div>
     </div>
     <button class="btn btn-ghost" id="btnLogout" style="align-self:flex-start;">Cerrar sesión</button>
@@ -320,6 +382,7 @@
   <nav class="tabs">
     <button data-view="hoy" class="active">Hoy</button>
     <button data-view="semana">Semana</button>
+    <button data-view="mes">Mes</button>
     <button data-view="tareas">Tareas</button>
     <button data-view="notas">Notas</button>
     <button data-view="materias">Materias</button>
@@ -341,16 +404,23 @@
   <!-- ================= SEMANA ================= -->
   <section class="view" id="view-semana">
     <div class="week-toolbar">
-      <div style="font-size:13px;color:var(--ink-soft)">Horario fijo de clases. Tocá un bloque para borrarlo.</div>
-      <button class="btn btn-primary" id="btnAddEvent">+ Agregar clase</button>
+      <div style="font-size:13px;color:var(--ink-soft)">Horario fijo de clases y sesiones de estudio. Tocá un bloque para borrarlo.</div>
+      <button class="btn btn-primary" id="btnAddEvent">+ Agregar bloque</button>
     </div>
 
     <div class="add-bar" id="eventForm" style="display:none;">
+      <div class="field" style="flex:1 1 150px;">
+        <label>Tipo</label>
+        <select id="ev-type">
+          <option value="clase">Clase fija (se repite cada semana)</option>
+          <option value="estudio">Sesión de estudio (un día puntual)</option>
+        </select>
+      </div>
       <div class="field" style="flex:1 1 140px;">
         <label>Materia</label>
         <select id="ev-subject"></select>
       </div>
-      <div class="field" style="flex:1 1 110px;">
+      <div class="field" id="ev-day-field" style="flex:1 1 110px;">
         <label>Día</label>
         <select id="ev-day">
           <option value="0">Lunes</option>
@@ -360,6 +430,10 @@
           <option value="4">Viernes</option>
           <option value="5">Sábado</option>
         </select>
+      </div>
+      <div class="field" id="ev-date-field" style="flex:1 1 130px; display:none;">
+        <label>Fecha</label>
+        <input type="date" id="ev-date">
       </div>
       <div class="field" style="flex:1 1 90px;">
         <label>Desde</label>
@@ -371,7 +445,7 @@
       </div>
       <div class="field" style="flex:2 1 160px;">
         <label>Detalle (opcional)</label>
-        <input type="text" id="ev-title" placeholder="Ej: Teórico, aula 4">
+        <input type="text" id="ev-title" placeholder="Ej: Teórico, aula 4 / Repasar capítulo 3">
       </div>
       <button class="btn btn-primary" id="ev-save">Guardar</button>
       <button class="btn btn-ghost" id="ev-cancel">Cancelar</button>
@@ -380,6 +454,20 @@
     <div class="grid-wrap">
       <div class="grid" id="weekGrid"></div>
     </div>
+  </section>
+
+  <!-- ================= MES ================= -->
+  <section class="view" id="view-mes">
+    <div class="month-toolbar">
+      <button class="month-nav-btn" id="monthPrev" title="Mes anterior">‹</button>
+      <div class="month-label" id="monthLabel"></div>
+      <button class="month-nav-btn" id="monthNext" title="Mes siguiente">›</button>
+    </div>
+    <div class="month-grid-wrap">
+      <div class="month-head-row" id="monthHeadRow"></div>
+      <div class="month-grid" id="monthGrid"></div>
+    </div>
+    <div id="monthDayDetail"></div>
   </section>
 
   <!-- ================= TAREAS ================= -->
@@ -448,7 +536,7 @@ import { createClient } from '@supabase/supabase-js';
   var GRID_START_HOUR = 7;
   var GRID_END_HOUR = 23;
   var HOUR_PX = 56;
-  var STORAGE_KEY = 'mi-semestre-data-v1';
+  var STORAGE_KEY = 'mi-agenda-data-v1';
 
   var state = {
     subjects: [],
@@ -461,7 +549,9 @@ import { createClient } from '@supabase/supabase-js';
     activeView: 'hoy',
     notesSubjectFilter: null,
     editingNoteId: null,
-    globalSubjectFilter: null
+    globalSubjectFilter: null,
+    monthCursor: null, // se inicializa en init() al primer día del mes actual
+    selectedMonthDate: null
   };
 
   function uid(prefix){
@@ -552,7 +642,7 @@ import { createClient } from '@supabase/supabase-js';
     seeds.forEach(function(s){
       var subj = subjectByName(s.subject);
       if (subj){
-        state.events.push({ id: uid('ev'), subjectId: subj.id, day: s.day, start: s.start, end: s.end, title: s.title });
+        state.events.push({ id: uid('ev'), subjectId: subj.id, type: 'clase', day: s.day, start: s.start, end: s.end, title: s.title });
         changed = true;
       }
     });
@@ -587,11 +677,34 @@ import { createClient } from '@supabase/supabase-js';
     return d.getFullYear() + '-' + (mm<10?'0':'')+mm + '-' + (dd<10?'0':'')+dd;
   }
 
+  function dateToISO(d){
+    var mm = (d.getMonth()+1); var dd = d.getDate();
+    return d.getFullYear() + '-' + (mm<10?'0':'')+mm + '-' + (dd<10?'0':'')+dd;
+  }
+  // Lunes de la semana actual (real), para ubicar sesiones de estudio con fecha puntual
+  function currentWeekMonday(){
+    var d = new Date(); d.setHours(0,0,0,0);
+    var jsDay = d.getDay(); // 0=Dom...6=Sáb
+    var diffToMonday = (jsDay === 0) ? -6 : (1 - jsDay);
+    d.setDate(d.getDate() + diffToMonday);
+    return d;
+  }
+  // Fecha real (Date) de la columna d (0=Lunes...5=Sábado) de esta semana
+  function weekDateForColumn(d){
+    var monday = currentWeekMonday();
+    var dt = new Date(monday);
+    dt.setDate(monday.getDate() + d);
+    return dt;
+  }
+
   function todaysEventsSorted(){
     var idx = todayColumnIndex();
-    if (idx === -1) return [];
-    return state.events.filter(function(ev){ return ev.day === idx; })
-      .sort(function(a,b){ return timeToMinutes(a.start) - timeToMinutes(b.start); });
+    var todayIso = todayISO();
+    var list = state.events.filter(function(ev){
+      if (ev.type === 'estudio') return ev.date === todayIso;
+      return idx !== -1 && ev.day === idx;
+    });
+    return list.sort(function(a,b){ return timeToMinutes(a.start) - timeToMinutes(b.start); });
   }
 
   function currentSubjectId(){
@@ -617,12 +730,14 @@ import { createClient } from '@supabase/supabase-js';
     var card = document.getElementById('hoyNowCard');
     if (current){
       var subj = subjectById(current.subjectId);
+      var tagCurrent = current.type === 'estudio' ? '📖 Estudio ahora' : 'Ahora';
       card.innerHTML = '<div class="now-card" style="background:'+(subj?subj.color:'var(--ink)')+'">' +
-        '<div class="tag">Ahora</div><h2>'+escapeHtml(subj?subj.name:'—')+'</h2>' +
+        '<div class="tag">'+tagCurrent+'</div><h2>'+escapeHtml(subj?subj.name:'—')+'</h2>' +
         '<div class="sub">Hasta las '+current.end+(current.title?' · '+escapeHtml(current.title):'')+'</div></div>';
     } else if (next){
       var subjN = subjectById(next.subjectId);
-      card.innerHTML = '<div class="now-card idle"><div class="tag">Próxima clase</div>' +
+      var tagNext = next.type === 'estudio' ? '📖 Estudio pendiente hoy' : 'Próxima clase';
+      card.innerHTML = '<div class="now-card idle"><div class="tag">'+tagNext+'</div>' +
         '<h2>'+escapeHtml(subjN?subjN.name:'—')+'</h2>' +
         '<div class="sub">A las '+next.start+(next.title?' · '+escapeHtml(next.title):'')+'</div></div>';
     } else {
@@ -641,7 +756,8 @@ import { createClient } from '@supabase/supabase-js';
         var row = document.createElement('div');
         row.className = 'mini-class-row';
         row.style.borderLeftColor = s.color;
-        row.innerHTML = '<span class="t">'+ev.start+'–'+ev.end+'</span><span>'+escapeHtml(s.name)+(ev.title?' · '+escapeHtml(ev.title):'')+'</span>';
+        var prefix = ev.type === 'estudio' ? '📖 ' : '';
+        row.innerHTML = '<span class="t">'+ev.start+'–'+ev.end+'</span><span>'+prefix+escapeHtml(s.name)+(ev.title?' · '+escapeHtml(ev.title):'')+'</span>';
         restList.appendChild(row);
       });
     }
@@ -689,6 +805,7 @@ import { createClient } from '@supabase/supabase-js';
         renderLegend();
         renderHoy();
         renderWeekGrid();
+        renderMonth();
         renderTasks();
         renderNotes();
       });
@@ -705,6 +822,7 @@ import { createClient } from '@supabase/supabase-js';
         renderLegend();
         renderHoy();
         renderWeekGrid();
+        renderMonth();
         renderTasks();
         renderNotes();
       });
@@ -740,16 +858,19 @@ import { createClient } from '@supabase/supabase-js';
     grid.innerHTML = '';
     var todayIdx = todayColumnIndex();
 
-    // header row
+    // header row (envuelto en .grid-head para que el CSS de header pegajoso/bordes se aplique)
+    var headWrap = document.createElement('div');
+    headWrap.className = 'grid-head';
     var corner = document.createElement('div');
     corner.className = 'cell';
-    grid.appendChild(corner);
+    headWrap.appendChild(corner);
     DAY_NAMES.forEach(function(name, i){
       var c = document.createElement('div');
       c.className = 'cell' + (i === todayIdx ? ' today' : '');
       c.textContent = name;
-      grid.appendChild(c);
+      headWrap.appendChild(c);
     });
+    grid.appendChild(headWrap);
 
     // hour column
     var hourCol = document.createElement('div');
@@ -783,27 +904,61 @@ import { createClient } from '@supabase/supabase-js';
         }
       }
 
+      var colISO = dateToISO(weekDateForColumn(d));
+
       state.events.filter(function(ev){
-        return ev.day === d && (!ui.globalSubjectFilter || ev.subjectId === ui.globalSubjectFilter);
+        if (ui.globalSubjectFilter && ev.subjectId !== ui.globalSubjectFilter) return false;
+        if (ev.type === 'estudio') return ev.date === colISO;
+        return ev.day === d;
       }).forEach(function(ev){
         var subj = subjectById(ev.subjectId);
         if (!subj) return;
+        var isStudy = ev.type === 'estudio';
         var startMin = timeToMinutes(ev.start) - GRID_START_HOUR*60;
         var endMin = timeToMinutes(ev.end) - GRID_START_HOUR*60;
         var top = (startMin/60) * HOUR_PX;
         var height = Math.max(((endMin-startMin)/60) * HOUR_PX, 22);
         var block = document.createElement('div');
-        block.className = 'event-block';
+        block.className = 'event-block' + (isStudy ? ' study-block' : '');
         block.style.top = top + 'px';
         block.style.height = height + 'px';
-        block.style.background = subj.color;
-        block.innerHTML = escapeHtml(subj.name) + (ev.title ? '<small>'+escapeHtml(ev.title)+'</small>' : '') +
+        if (isStudy){
+          block.style.background = 'var(--surface)';
+          block.style.borderColor = subj.color;
+        } else {
+          block.style.background = subj.color;
+        }
+        var namePrefix = isStudy ? '📖 ' : '';
+        block.innerHTML = namePrefix + escapeHtml(subj.name) + (ev.title ? '<small>'+escapeHtml(ev.title)+'</small>' : '') +
           '<small>'+ev.start+'–'+ev.end+'</small><button class="del" data-del-event="'+ev.id+'">✕</button>';
         inner.appendChild(block);
       });
 
       col.appendChild(inner);
       grid.appendChild(col);
+    }
+
+    // aviso de tareas pendientes por día, en el header de cada columna
+    var headerCells = headWrap.querySelectorAll('.cell');
+    for (var d2=0; d2<6; d2++){
+      var cellISO = dateToISO(weekDateForColumn(d2));
+      var pendingCount = state.tasks.filter(function(t){
+        if (t.done || !t.dueDate) return false;
+        if (ui.globalSubjectFilter && t.subjectId !== ui.globalSubjectFilter) return false;
+        return t.dueDate === cellISO;
+      }).length;
+      var headCell = headerCells[d2 + 1]; // +1 porque el primer .cell es la esquina vacía
+      if (headCell && pendingCount > 0){
+        var badge = document.createElement('span');
+        badge.className = 'day-badge';
+        badge.textContent = pendingCount;
+        badge.title = pendingCount + (pendingCount === 1 ? ' entrega ese día' : ' entregas ese día');
+        badge.addEventListener('click', function(e){
+          e.stopPropagation();
+          switchView('tareas');
+        });
+        headCell.appendChild(badge);
+      }
     }
 
     grid.querySelectorAll('[data-del-event]').forEach(function(btn){
@@ -813,22 +968,38 @@ import { createClient } from '@supabase/supabase-js';
         state.events = state.events.filter(function(ev){ return ev.id !== id; });
         save();
         renderWeekGrid();
+        renderMonth();
       });
     });
   }
 
   function setupEventForm(){
     var form = document.getElementById('eventForm');
+    var typeSel = document.getElementById('ev-type');
+    var dayField = document.getElementById('ev-day-field');
+    var dateField = document.getElementById('ev-date-field');
+
+    function syncTypeFields(){
+      var isStudy = typeSel.value === 'estudio';
+      dayField.style.display = isStudy ? 'none' : 'flex';
+      dateField.style.display = isStudy ? 'flex' : 'none';
+      if (isStudy && !document.getElementById('ev-date').value){
+        document.getElementById('ev-date').value = todayISO();
+      }
+    }
+    typeSel.addEventListener('change', syncTypeFields);
+
     document.getElementById('btnAddEvent').addEventListener('click', function(){
       fillSubjectSelect(document.getElementById('ev-subject'));
       form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+      syncTypeFields();
     });
     document.getElementById('ev-cancel').addEventListener('click', function(){
       form.style.display = 'none';
     });
     document.getElementById('ev-save').addEventListener('click', function(){
+      var type = typeSel.value;
       var subjectId = document.getElementById('ev-subject').value;
-      var day = parseInt(document.getElementById('ev-day').value,10);
       var start = document.getElementById('ev-start').value;
       var end = document.getElementById('ev-end').value;
       var title = document.getElementById('ev-title').value.trim();
@@ -837,11 +1008,202 @@ import { createClient } from '@supabase/supabase-js';
         alert('La hora de fin tiene que ser después de la hora de inicio.');
         return;
       }
-      state.events.push({ id: uid('ev'), subjectId: subjectId, day: day, start: start, end: end, title: title });
+      if (type === 'estudio'){
+        var date = document.getElementById('ev-date').value;
+        if (!date){ alert('Elegí una fecha para la sesión de estudio.'); return; }
+        state.events.push({ id: uid('ev'), subjectId: subjectId, type: 'estudio', date: date, start: start, end: end, title: title });
+      } else {
+        var day = parseInt(document.getElementById('ev-day').value,10);
+        state.events.push({ id: uid('ev'), subjectId: subjectId, type: 'clase', day: day, start: start, end: end, title: title });
+      }
       save();
       document.getElementById('ev-title').value = '';
       renderWeekGrid();
+      renderMonth();
+      renderHoy();
     });
+  }
+
+  // ---------- MES ----------
+  var MONTH_NAMES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var WEEKDAY_SHORT = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+
+  function startOfMonth(d){
+    return new Date(d.getFullYear(), d.getMonth(), 1);
+  }
+
+  // 42 días (6 semanas, Lunes a Domingo) que cubren el mes, con días del mes anterior/siguiente para completar la grilla
+  function monthGridDates(monthStart){
+    var firstWeekday = monthStart.getDay(); // 0=Dom...6=Sáb
+    var leading = (firstWeekday === 0) ? 6 : firstWeekday - 1;
+    var gridStart = new Date(monthStart);
+    gridStart.setDate(monthStart.getDate() - leading);
+    var dates = [];
+    for (var i=0; i<42; i++){
+      var dt = new Date(gridStart);
+      dt.setDate(gridStart.getDate() + i);
+      dates.push(dt);
+    }
+    return dates;
+  }
+
+  function setupMonthNav(){
+    document.getElementById('monthPrev').addEventListener('click', function(){
+      ui.monthCursor = new Date(ui.monthCursor.getFullYear(), ui.monthCursor.getMonth()-1, 1);
+      ui.selectedMonthDate = null;
+      renderMonth();
+    });
+    document.getElementById('monthNext').addEventListener('click', function(){
+      ui.monthCursor = new Date(ui.monthCursor.getFullYear(), ui.monthCursor.getMonth()+1, 1);
+      ui.selectedMonthDate = null;
+      renderMonth();
+    });
+  }
+
+  function renderMonth(){
+    var headRow = document.getElementById('monthHeadRow');
+    if (headRow.children.length === 0){
+      WEEKDAY_SHORT.forEach(function(name){
+        var c = document.createElement('div');
+        c.className = 'cell';
+        c.textContent = name;
+        headRow.appendChild(c);
+      });
+    }
+    document.getElementById('monthLabel').textContent =
+      MONTH_NAMES[ui.monthCursor.getMonth()] + ' ' + ui.monthCursor.getFullYear();
+
+    var grid = document.getElementById('monthGrid');
+    grid.innerHTML = '';
+    var dates = monthGridDates(ui.monthCursor);
+    var todayIso = todayISO();
+
+    dates.forEach(function(dt){
+      var iso = dateToISO(dt);
+      var isOutside = dt.getMonth() !== ui.monthCursor.getMonth();
+      var cell = document.createElement('div');
+      cell.className = 'month-cell' +
+        (isOutside ? ' outside' : '') +
+        (iso === todayIso ? ' today' : '') +
+        (iso === ui.selectedMonthDate ? ' selected' : '');
+
+      var num = document.createElement('div');
+      num.className = 'month-day-num';
+      num.textContent = dt.getDate();
+      cell.appendChild(num);
+
+      var dots = document.createElement('div');
+      dots.className = 'month-dots';
+
+      var dayTasks = state.tasks.filter(function(t){
+        return t.dueDate === iso && (!ui.globalSubjectFilter || t.subjectId === ui.globalSubjectFilter);
+      });
+      var dayStudy = state.events.filter(function(ev){
+        return ev.type === 'estudio' && ev.date === iso && (!ui.globalSubjectFilter || ev.subjectId === ui.globalSubjectFilter);
+      });
+
+      dayTasks.slice(0,4).forEach(function(t){
+        var subj = subjectById(t.subjectId) || { color:'#999' };
+        var dot = document.createElement('span');
+        dot.className = 'month-dot';
+        dot.style.background = subj.color;
+        dot.style.opacity = t.done ? '.4' : '1';
+        dots.appendChild(dot);
+      });
+      dayStudy.slice(0,4).forEach(function(ev){
+        var subj = subjectById(ev.subjectId) || { color:'#999' };
+        var dot = document.createElement('span');
+        dot.className = 'month-dot study';
+        dot.style.borderColor = subj.color;
+        dots.appendChild(dot);
+      });
+
+      cell.appendChild(dots);
+      cell.addEventListener('click', function(){
+        ui.selectedMonthDate = iso;
+        renderMonth();
+      });
+      grid.appendChild(cell);
+    });
+
+    renderMonthDayDetail();
+  }
+
+  function renderMonthDayDetail(){
+    var wrap = document.getElementById('monthDayDetail');
+    wrap.innerHTML = '';
+    if (!ui.selectedMonthDate) return;
+    var iso = ui.selectedMonthDate;
+    var dt = parseISODate(iso);
+    var dayNames = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+    var label = dayNames[dt.getDay()] + ' ' + fmtDate(dt);
+
+    var panel = document.createElement('div');
+    panel.className = 'day-detail';
+
+    var title = document.createElement('h4');
+    title.textContent = label.charAt(0).toUpperCase() + label.slice(1);
+    panel.appendChild(title);
+
+    var dayTasks = state.tasks.filter(function(t){ return t.dueDate === iso; });
+    var dayStudy = state.events.filter(function(ev){ return ev.type === 'estudio' && ev.date === iso; });
+
+    if (dayTasks.length === 0 && dayStudy.length === 0){
+      var empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.style.padding = '6px 0 12px';
+      empty.textContent = 'Nada cargado para este día todavía.';
+      panel.appendChild(empty);
+    } else {
+      dayTasks.forEach(function(t){
+        var subj = subjectById(t.subjectId) || { color:'#999', name:'—' };
+        var row = document.createElement('div');
+        row.className = 'day-detail-item';
+        row.innerHTML = '<span class="dot" style="background:'+subj.color+'"></span> 🗒️ ' +
+          escapeHtml(t.title) + ' · ' + escapeHtml(subj.name) + (t.done ? ' · completada' : '');
+        panel.appendChild(row);
+      });
+      dayStudy.forEach(function(ev){
+        var subj = subjectById(ev.subjectId) || { color:'#999', name:'—' };
+        var row = document.createElement('div');
+        row.className = 'day-detail-item';
+        row.innerHTML = '<span class="dot" style="border:1.5px solid '+subj.color+'"></span> 📖 ' +
+          escapeHtml(subj.name) + (ev.title ? ' · '+escapeHtml(ev.title) : '') + ' · ' + ev.start + '–' + ev.end;
+        panel.appendChild(row);
+      });
+    }
+
+    var actions = document.createElement('div');
+    actions.className = 'row-gap';
+
+    var addTaskBtn = document.createElement('button');
+    addTaskBtn.className = 'btn btn-ghost';
+    addTaskBtn.textContent = '+ Tarea este día';
+    addTaskBtn.addEventListener('click', function(){
+      switchView('tareas');
+      fillSubjectSelect(document.getElementById('tk-subject'));
+      document.getElementById('tk-date').value = iso;
+      document.getElementById('tk-title').focus();
+    });
+
+    var addStudyBtn = document.createElement('button');
+    addStudyBtn.className = 'btn btn-ghost';
+    addStudyBtn.textContent = '+ Sesión de estudio este día';
+    addStudyBtn.addEventListener('click', function(){
+      switchView('semana');
+      fillSubjectSelect(document.getElementById('ev-subject'));
+      document.getElementById('eventForm').style.display = 'flex';
+      document.getElementById('ev-type').value = 'estudio';
+      document.getElementById('ev-day-field').style.display = 'none';
+      document.getElementById('ev-date-field').style.display = 'flex';
+      document.getElementById('ev-date').value = iso;
+    });
+
+    actions.appendChild(addTaskBtn);
+    actions.appendChild(addStudyBtn);
+    panel.appendChild(actions);
+
+    wrap.appendChild(panel);
   }
 
   // ---------- TAREAS ----------
@@ -911,6 +1273,7 @@ import { createClient } from '@supabase/supabase-js';
       t.done = !t.done;
       save();
       renderTasks();
+      renderMonth();
     });
 
     var main = document.createElement('div');
@@ -940,6 +1303,7 @@ import { createClient } from '@supabase/supabase-js';
       state.tasks = state.tasks.filter(function(x){ return x.id !== t.id; });
       save();
       renderTasks();
+      renderMonth();
     });
 
     row.appendChild(check);
@@ -960,6 +1324,7 @@ import { createClient } from '@supabase/supabase-js';
       document.getElementById('tk-title').value = '';
       document.getElementById('tk-date').value = '';
       renderTasks();
+      renderMonth();
     });
   }
 
@@ -1244,6 +1609,9 @@ import { createClient } from '@supabase/supabase-js';
     ui.activeView = view;
     document.querySelectorAll('section.view').forEach(function(v){ v.classList.remove('active'); });
     document.getElementById('view-' + view).classList.add('active');
+    // en Notas ya hay un selector de materia propio (obligatorio, una sola a la vez);
+    // se oculta el filtro global de arriba para no mostrar los mismos chips duplicados
+    document.getElementById('legendWrap').style.display = (view === 'notas') ? 'none' : 'flex';
   }
 
   function setupTabs(){
@@ -1267,6 +1635,7 @@ import { createClient } from '@supabase/supabase-js';
     renderLegend();
     renderHoy();
     renderWeekGrid();
+    renderMonth();
     renderTasks();
     renderNotes();
     renderSubjects();
@@ -1295,7 +1664,7 @@ import { createClient } from '@supabase/supabase-js';
       var a = document.createElement('a');
       var stamp = todayISO();
       a.href = url;
-      a.download = 'mi-semestre-backup-' + stamp + '.json';
+      a.download = 'mi-agenda-backup-' + stamp + '.json';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -1406,9 +1775,11 @@ import { createClient } from '@supabase/supabase-js';
   }
 
   function init(){
+    ui.monthCursor = startOfMonth(new Date());
     renderToday();
     setupTabs();
     setupEventForm();
+    setupMonthNav();
     setupTaskForm();
     setupNotes();
     setupSubjects();
