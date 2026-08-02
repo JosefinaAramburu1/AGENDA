@@ -258,7 +258,7 @@
   .task-main{flex:1; min-width:0;}
   .task-title{font-weight:600; font-size:14px;}
   .task-meta{font-size:12px; color:var(--ink-soft); margin-top:2px; display:flex; gap:8px; flex-wrap:wrap;}
-  .task-note{font-size:12.5px; color:var(--ink); margin-top:5px; font-style:italic; opacity:.85;}
+  .task-note{font-size:12.5px; color:var(--ink); margin-top:5px; opacity:.85;}
   .badge-alta{color:var(--danger); font-weight:700;}
   .badge-overdue{color:var(--danger);}
 
@@ -494,7 +494,7 @@
         <option value="normal">Prioridad normal</option>
         <option value="alta">Prioridad alta</option>
       </select>
-      <input type="text" id="tk-note" placeholder="Nota (opcional)" style="flex:2 1 180px;">
+      <input type="text" id="tk-note" placeholder="Nota o detalle (opcional)" style="flex:2 1 180px;">
       <button class="btn btn-primary" id="tk-add">+ Agregar</button>
     </div>
     <div class="field" style="margin:14px 4px 0;">
@@ -573,7 +573,8 @@ import { createClient } from '@supabase/supabase-js';
     monthCursor: null, // se inicializa en init() al primer día del mes actual
     selectedMonthDate: null,
     taskSearch: '',
-    noteSearch: ''
+    noteSearch: '',
+    editingTaskId: null
   };
 
   function uid(prefix){
@@ -1376,7 +1377,9 @@ import { createClient } from '@supabase/supabase-js';
       title.className = 'task-group-title';
       title.textContent = label + ' (' + groups[key].length + ')';
       list.appendChild(title);
-      groups[key].forEach(function(t){ list.appendChild(renderTaskRow(t, key)); });
+      groups[key].forEach(function(t){
+        list.appendChild(t.id === ui.editingTaskId ? renderTaskEditRow(t) : renderTaskRow(t, key));
+      });
     });
   }
 
@@ -1416,6 +1419,15 @@ import { createClient } from '@supabase/supabase-js';
     main.innerHTML = '<div class="task-title">'+escapeHtml(t.title)+'</div><div class="task-meta">'+metaBits.join(' <span>·</span> ')+'</div>' +
       (t.note ? '<div class="task-note">'+escapeHtml(t.note)+'</div>' : '');
 
+    var edit = document.createElement('button');
+    edit.className = 'icon-btn';
+    edit.innerHTML = '✎';
+    edit.title = 'Editar';
+    edit.addEventListener('click', function(){
+      ui.editingTaskId = t.id;
+      renderTasks();
+    });
+
     var del = document.createElement('button');
     del.className = 'icon-btn';
     del.innerHTML = '✕';
@@ -1430,8 +1442,58 @@ import { createClient } from '@supabase/supabase-js';
 
     row.appendChild(check);
     row.appendChild(main);
+    row.appendChild(edit);
     row.appendChild(del);
     return row;
+  }
+
+  function renderTaskEditRow(t){
+    var box = document.createElement('div');
+    box.className = 'task-row editing';
+    box.style.flexDirection = 'column';
+    box.style.alignItems = 'stretch';
+    box.style.gap = '8px';
+
+    var subjOptions = '<option value="general"' + (t.subjectId === 'general' ? ' selected' : '') + '>General (sin materia)</option>' +
+      state.subjects.map(function(s){
+        return '<option value="'+s.id+'"' + (t.subjectId === s.id ? ' selected' : '') + '>'+escapeHtml(s.name)+'</option>';
+      }).join('');
+
+    box.innerHTML =
+      '<div class="add-bar" style="padding:0;">' +
+        '<select id="etk-subject" style="flex:1 1 130px;">'+subjOptions+'</select>' +
+        '<input type="text" id="etk-title" value="'+escapeHtml(t.title)+'" placeholder="¿Qué hay que entregar?">' +
+        '<input type="date" id="etk-date" value="'+(t.dueDate||'')+'">' +
+        '<select id="etk-priority" style="flex:1 1 100px;">' +
+          '<option value="normal"'+(t.priority!=='alta'?' selected':'')+'>Prioridad normal</option>' +
+          '<option value="alta"'+(t.priority==='alta'?' selected':'')+'>Prioridad alta</option>' +
+        '</select>' +
+        '<input type="text" id="etk-note" value="'+escapeHtml(t.note||'')+'" placeholder="Nota o detalle (opcional)" style="flex:2 1 180px;">' +
+      '</div>' +
+      '<div class="row-gap">' +
+        '<button class="btn btn-primary" id="etk-save">Guardar cambios</button>' +
+        '<button class="btn btn-ghost" id="etk-cancel">Cancelar</button>' +
+      '</div>';
+
+    box.querySelector('#etk-save').addEventListener('click', function(){
+      var title = box.querySelector('#etk-title').value.trim();
+      if (!title) return;
+      t.subjectId = box.querySelector('#etk-subject').value;
+      t.title = title;
+      t.dueDate = box.querySelector('#etk-date').value || '';
+      t.priority = box.querySelector('#etk-priority').value;
+      t.note = box.querySelector('#etk-note').value.trim();
+      save();
+      ui.editingTaskId = null;
+      renderTasks();
+      renderMonth();
+    });
+    box.querySelector('#etk-cancel').addEventListener('click', function(){
+      ui.editingTaskId = null;
+      renderTasks();
+    });
+
+    return box;
   }
 
   function setupTaskForm(){
