@@ -258,6 +258,7 @@
   .task-main{flex:1; min-width:0;}
   .task-title{font-weight:600; font-size:14px;}
   .task-meta{font-size:12px; color:var(--ink-soft); margin-top:2px; display:flex; gap:8px; flex-wrap:wrap;}
+  .task-note{font-size:12.5px; color:var(--ink); margin-top:5px; font-style:italic; opacity:.85;}
   .badge-alta{color:var(--danger); font-weight:700;}
   .badge-overdue{color:var(--danger);}
 
@@ -493,6 +494,7 @@
         <option value="normal">Prioridad normal</option>
         <option value="alta">Prioridad alta</option>
       </select>
+      <input type="text" id="tk-note" placeholder="Nota (opcional)" style="flex:2 1 180px;">
       <button class="btn btn-primary" id="tk-add">+ Agregar</button>
     </div>
     <div class="field" style="margin:14px 4px 0;">
@@ -1269,7 +1271,8 @@ import { createClient } from '@supabase/supabase-js';
         row.innerHTML = '<span class="dot" style="background:'+subj.color+'"></span> 🗒️ ' +
           escapeHtml(t.title) + ' · ' + escapeHtml(subj.name) +
           (t.priority === 'alta' && !t.done ? ' · <span class="badge-alta">● prioridad alta</span>' : '') +
-          (t.done ? ' · completada' : '');
+          (t.done ? ' · completada' : '') +
+          (t.note ? '<div class="task-note" style="margin-top:2px;width:100%;">'+escapeHtml(t.note)+'</div>' : '');
         panel.appendChild(row);
       });
       dayStudy.forEach(function(ev){
@@ -1326,7 +1329,9 @@ import { createClient } from '@supabase/supabase-js';
       : state.tasks;
     if (ui.taskSearch){
       var q = ui.taskSearch.toLowerCase();
-      sourceTasks = sourceTasks.filter(function(t){ return t.title.toLowerCase().indexOf(q) !== -1; });
+      sourceTasks = sourceTasks.filter(function(t){
+        return t.title.toLowerCase().indexOf(q) !== -1 || (t.note||'').toLowerCase().indexOf(q) !== -1;
+      });
     }
 
     if (sourceTasks.length === 0){
@@ -1408,7 +1413,8 @@ import { createClient } from '@supabase/supabase-js';
     }
     if (t.priority === 'alta' && !t.done) metaBits.push('<span class="badge-alta">● prioridad alta</span>');
 
-    main.innerHTML = '<div class="task-title">'+escapeHtml(t.title)+'</div><div class="task-meta">'+metaBits.join(' <span>·</span> ')+'</div>';
+    main.innerHTML = '<div class="task-title">'+escapeHtml(t.title)+'</div><div class="task-meta">'+metaBits.join(' <span>·</span> ')+'</div>' +
+      (t.note ? '<div class="task-note">'+escapeHtml(t.note)+'</div>' : '');
 
     var del = document.createElement('button');
     del.className = 'icon-btn';
@@ -1438,11 +1444,13 @@ import { createClient } from '@supabase/supabase-js';
       var title = document.getElementById('tk-title').value.trim();
       var date = document.getElementById('tk-date').value;
       var priority = document.getElementById('tk-priority').value;
+      var note = document.getElementById('tk-note').value.trim();
       if (!title) return;
-      state.tasks.push({ id: uid('task'), subjectId: subjectId, title: title, dueDate: date || '', done: false, priority: priority });
+      state.tasks.push({ id: uid('task'), subjectId: subjectId, title: title, dueDate: date || '', done: false, priority: priority, note: note });
       save();
       document.getElementById('tk-title').value = '';
       document.getElementById('tk-date').value = '';
+      document.getElementById('tk-note').value = '';
       renderTasks();
       renderMonth();
     });
