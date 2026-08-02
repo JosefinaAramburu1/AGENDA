@@ -133,7 +133,7 @@
   }
   .grid-head{position:sticky; top:0; background:var(--surface); z-index:2; display:contents;}
   .grid-head .cell{
-    padding:10px 6px; text-align:center; font-weight:700; font-size:12.5px; font-family:var(--font-display);
+    padding:10px 6px; text-align:center; font-weight:700; font-size:14.5px; font-family:var(--font-display);
     border-bottom:1px solid var(--border); border-left:1px solid var(--border); background:var(--surface);
     position:sticky; top:0;
   }
@@ -142,7 +142,7 @@
     min-width:14px; height:14px; padding:0 3px; border-radius:999px; line-height:14px; cursor:pointer;
   }
   .grid-head .cell:first-child{border-left:none;}
-  .grid-head-date{font-size:10px; font-weight:600; color:var(--ink-faint); margin-top:2px; text-transform:none;}
+  .grid-head-date{font-size:13px; font-weight:700; color:var(--ink); margin-top:2px; text-transform:none;}
   .grid-head .cell.today .grid-head-date{color:var(--now);}
   .hour-col{display:flex; flex-direction:column;}
   .hour-label{
@@ -175,17 +175,19 @@
     box-shadow:0 1px 2px rgba(0,0,0,.15); cursor:pointer;
   }
   .event-block small{display:block; font-weight:500; opacity:.85; font-size:10.5px;}
-  .event-block .del{
-    position:absolute; top:2px; right:4px; background:none; border:none; color:#fff; opacity:0;
+  .event-block .del, .event-block .edit{
+    position:absolute; top:2px; background:none; border:none; color:#fff; opacity:0;
     font-size:12px; line-height:1; padding:2px;
   }
-  .event-block:hover .del{opacity:.85;}
+  .event-block .del{right:4px;}
+  .event-block .edit{right:20px;}
+  .event-block:hover .del, .event-block:hover .edit{opacity:.85;}
   .event-block.study-block{
     color:var(--ink); box-shadow:none; border:2px dashed; background-image:none !important;
   }
   .event-block.study-block small{opacity:.75;}
-  .event-block.study-block .del{color:var(--ink); opacity:0;}
-  .event-block.study-block:hover .del{opacity:.7;}
+  .event-block.study-block .del, .event-block.study-block .edit{color:var(--ink); opacity:0;}
+  .event-block.study-block:hover .del, .event-block.study-block:hover .edit{opacity:.7;}
 
   /* ================= MES ================= */
   .month-toolbar{display:flex; align-items:center; justify-content:space-between; margin:16px 4px 4px; gap:10px;}
@@ -201,8 +203,8 @@
   }
   .month-head-row{display:grid; grid-template-columns:repeat(7,1fr); border-bottom:1px solid var(--border);}
   .month-head-row .cell{
-    padding:8px 4px; text-align:center; font-weight:700; font-size:11.5px;
-    font-family:var(--font-display); color:var(--ink-soft);
+    padding:8px 2px; text-align:center; font-weight:700; font-size:10px;
+    font-family:var(--font-display); color:var(--ink); line-height:1.25; word-break:break-word;
   }
   .month-grid{display:grid; grid-template-columns:repeat(7,1fr);}
   .month-cell{
@@ -243,6 +245,7 @@
     .month-day-num{font-size:11px; width:17px; height:17px;}
     .month-item{font-size:8px; padding:1px 3px;}
     .month-more{font-size:8px;}
+    .month-head-row .cell{font-size:8px; padding:6px 1px;}
   }
 
   /* ================= TAREAS ================= */
@@ -275,6 +278,26 @@
   }
   .note-editor textarea{min-height:140px; resize:vertical; font-family:var(--font-body);}
   .row-gap{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;}
+
+  .topics-wrap{margin-top:6px;}
+  .topic-row{display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--border);}
+  .topic-row:last-child{border-bottom:none;}
+  .topic-status{
+    width:20px; height:20px; border-radius:50%; border:2px solid var(--ink-faint); flex:none; cursor:pointer;
+    font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; color:#fff; background:none;
+  }
+  .topic-status[data-status="repasado"]{background:#F2C14E; border-color:#F2C14E;}
+  .topic-status[data-status="entendido"]{background:var(--accent); border-color:var(--accent);}
+  .topic-text{flex:1; font-size:13.5px; background:none; border:none; padding:2px 0;}
+  .topic-remove{background:none; border:none; color:var(--ink-faint); font-size:13px; padding:2px; flex:none;}
+  .topic-add-row{display:flex; gap:8px; margin-top:10px;}
+  .topic-add-row input{flex:1;}
+  .topics-legend{font-size:11px; color:var(--ink-faint); margin-top:8px;}
+  .note-topics-preview{display:flex; flex-direction:column; gap:3px; margin-top:2px;}
+  .note-topic-mini{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-soft);}
+  .note-topic-mini .dot{width:8px; height:8px; border-radius:50%; flex:none; background:var(--ink-faint);}
+  .note-topic-mini .dot[data-status="repasado"]{background:#F2C14E;}
+  .note-topic-mini .dot[data-status="entendido"]{background:var(--accent);}
 
   /* ================= MATERIAS ================= */
   .subject-row{
@@ -418,7 +441,7 @@
   <!-- ================= SEMANA ================= -->
   <section class="view" id="view-semana">
     <div class="week-toolbar">
-      <div style="font-size:13px;color:var(--ink-soft)">Horario fijo de clases y sesiones de estudio. Tocá un bloque para borrarlo.</div>
+      <div></div>
       <button class="btn btn-primary" id="btnAddEvent">+ Agregar bloque</button>
     </div>
 
@@ -574,7 +597,8 @@ import { createClient } from '@supabase/supabase-js';
     selectedMonthDate: null,
     taskSearch: '',
     noteSearch: '',
-    editingTaskId: null
+    editingTaskId: null,
+    editingEventId: null
   };
 
   function uid(prefix){
@@ -992,7 +1016,9 @@ import { createClient } from '@supabase/supabase-js';
         }
         var namePrefix = isStudy ? '📖 ' : '';
         block.innerHTML = namePrefix + escapeHtml(subj.name) + (ev.title ? '<small>'+escapeHtml(ev.title)+'</small>' : '') +
-          '<small>'+ev.start+'–'+ev.end+'</small><button class="del" data-del-event="'+ev.id+'">✕</button>';
+          '<small>'+ev.start+'–'+ev.end+'</small>' +
+          '<button class="edit" data-edit-event="'+ev.id+'">✎</button>' +
+          '<button class="del" data-del-event="'+ev.id+'">✕</button>';
         inner.appendChild(block);
       });
 
@@ -1023,6 +1049,16 @@ import { createClient } from '@supabase/supabase-js';
       }
     }
 
+    grid.querySelectorAll('[data-edit-event]').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        var id = btn.getAttribute('data-edit-event');
+        var ev = state.events.find(function(x){ return x.id === id; });
+        if (!ev) return;
+        openEventFormForEdit(ev);
+      });
+    });
+
     grid.querySelectorAll('[data-del-event]').forEach(function(btn){
       btn.addEventListener('click', function(e){
         e.stopPropagation();
@@ -1038,6 +1074,26 @@ import { createClient } from '@supabase/supabase-js';
         renderMonth();
       });
     });
+  }
+
+  function openEventFormForEdit(ev){
+    ui.editingEventId = ev.id;
+    fillSubjectSelect(document.getElementById('ev-subject'));
+    document.getElementById('ev-type').value = ev.type === 'estudio' ? 'estudio' : 'clase';
+    document.getElementById('ev-subject').value = ev.subjectId;
+    document.getElementById('ev-start').value = ev.start;
+    document.getElementById('ev-end').value = ev.end;
+    document.getElementById('ev-title').value = ev.title || '';
+    document.getElementById('ev-day-field').style.display = ev.type === 'estudio' ? 'none' : 'flex';
+    document.getElementById('ev-date-field').style.display = ev.type === 'estudio' ? 'flex' : 'none';
+    if (ev.type === 'estudio'){
+      document.getElementById('ev-date').value = ev.date;
+    } else {
+      document.getElementById('ev-day').value = String(ev.day);
+    }
+    document.getElementById('ev-save').textContent = 'Guardar cambios';
+    document.getElementById('eventForm').style.display = 'flex';
+    document.getElementById('eventForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   function setupEventForm(){
@@ -1057,11 +1113,16 @@ import { createClient } from '@supabase/supabase-js';
     typeSel.addEventListener('change', syncTypeFields);
 
     document.getElementById('btnAddEvent').addEventListener('click', function(){
+      ui.editingEventId = null;
+      document.getElementById('ev-save').textContent = 'Guardar';
+      document.getElementById('ev-title').value = '';
       fillSubjectSelect(document.getElementById('ev-subject'));
       form.style.display = form.style.display === 'none' ? 'flex' : 'none';
       syncTypeFields();
     });
     document.getElementById('ev-cancel').addEventListener('click', function(){
+      ui.editingEventId = null;
+      document.getElementById('ev-save').textContent = 'Guardar';
       form.style.display = 'none';
     });
     document.getElementById('ev-save').addEventListener('click', function(){
@@ -1077,8 +1138,11 @@ import { createClient } from '@supabase/supabase-js';
       }
       var newStartMin = timeToMinutes(start), newEndMin = timeToMinutes(end);
       function overlapsExisting(ev){
+        if (ev.id === ui.editingEventId) return false; // no comparar contra sí mismo
         return timeToMinutes(ev.start) < newEndMin && newStartMin < timeToMinutes(ev.end);
       }
+
+      var targetEvent = ui.editingEventId ? state.events.find(function(x){ return x.id === ui.editingEventId; }) : null;
 
       if (type === 'estudio'){
         var date = document.getElementById('ev-date').value;
@@ -1095,7 +1159,13 @@ import { createClient } from '@supabase/supabase-js';
           );
           if (!proceed) return;
         }
-        state.events.push({ id: uid('ev'), subjectId: subjectId, type: 'estudio', date: date, start: start, end: end, title: title });
+        if (targetEvent){
+          targetEvent.subjectId = subjectId; targetEvent.type = 'estudio'; targetEvent.date = date;
+          targetEvent.start = start; targetEvent.end = end; targetEvent.title = title;
+          delete targetEvent.day;
+        } else {
+          state.events.push({ id: uid('ev'), subjectId: subjectId, type: 'estudio', date: date, start: start, end: end, title: title });
+        }
       } else {
         var day = parseInt(document.getElementById('ev-day').value,10);
         var conflictClase = state.events.find(function(ev){
@@ -1108,10 +1178,19 @@ import { createClient } from '@supabase/supabase-js';
           );
           if (!proceedC) return;
         }
-        state.events.push({ id: uid('ev'), subjectId: subjectId, type: 'clase', day: day, start: start, end: end, title: title });
+        if (targetEvent){
+          targetEvent.subjectId = subjectId; targetEvent.type = 'clase'; targetEvent.day = day;
+          targetEvent.start = start; targetEvent.end = end; targetEvent.title = title;
+          delete targetEvent.date;
+        } else {
+          state.events.push({ id: uid('ev'), subjectId: subjectId, type: 'clase', day: day, start: start, end: end, title: title });
+        }
       }
       save();
+      ui.editingEventId = null;
+      document.getElementById('ev-save').textContent = 'Guardar';
       document.getElementById('ev-title').value = '';
+      form.style.display = 'none';
       renderWeekGrid();
       renderMonth();
       renderHoy();
@@ -1120,7 +1199,7 @@ import { createClient } from '@supabase/supabase-js';
 
   // ---------- MES ----------
   var MONTH_NAMES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  var WEEKDAY_SHORT = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  var WEEKDAY_FULL = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 
   function startOfMonth(d){
     return new Date(d.getFullYear(), d.getMonth(), 1);
@@ -1157,7 +1236,7 @@ import { createClient } from '@supabase/supabase-js';
   function renderMonth(){
     var headRow = document.getElementById('monthHeadRow');
     if (headRow.children.length === 0){
-      WEEKDAY_SHORT.forEach(function(name){
+      WEEKDAY_FULL.forEach(function(name){
         var c = document.createElement('div');
         c.className = 'cell';
         c.textContent = name;
@@ -1304,6 +1383,9 @@ import { createClient } from '@supabase/supabase-js';
     addStudyBtn.textContent = '+ Sesión de estudio este día';
     addStudyBtn.addEventListener('click', function(){
       switchView('semana');
+      ui.editingEventId = null;
+      document.getElementById('ev-save').textContent = 'Guardar';
+      document.getElementById('ev-title').value = '';
       fillSubjectSelect(document.getElementById('ev-subject'));
       document.getElementById('eventForm').style.display = 'flex';
       document.getElementById('ev-type').value = 'estudio';
@@ -1568,7 +1650,10 @@ import { createClient } from '@supabase/supabase-js';
     if (ui.noteSearch){
       var q = ui.noteSearch.toLowerCase();
       notesForSubject = notesForSubject.filter(function(n){
-        return (n.title||'').toLowerCase().indexOf(q) !== -1 || (n.content||'').toLowerCase().indexOf(q) !== -1;
+        var topicsText = (n.topics || []).map(function(t){ return t.text; }).join(' ');
+        return (n.title||'').toLowerCase().indexOf(q) !== -1 ||
+          (n.content||'').toLowerCase().indexOf(q) !== -1 ||
+          topicsText.toLowerCase().indexOf(q) !== -1;
       });
     }
 
@@ -1587,7 +1672,24 @@ import { createClient } from '@supabase/supabase-js';
       card.className = 'note-card';
       card.style.borderLeftColor = subj.color;
       var d = new Date(n.updatedAt);
-      card.innerHTML = '<h4>'+escapeHtml(n.title || 'Sin título')+'</h4><p>'+escapeHtml(n.content)+'</p><div class="note-date">Editada el '+fmtDate(d)+'</div>';
+      var bodyHtml;
+      if (n.kind === 'checklist'){
+        var topics = n.topics || [];
+        if (topics.length === 0){
+          bodyHtml = '<p style="opacity:.6;">Sin temas cargados todavía.</p>';
+        } else {
+          var doneCount = topics.filter(function(t){ return t.status === 'entendido'; }).length;
+          bodyHtml = '<div class="note-topics-preview">' +
+            topics.slice(0,5).map(function(t){
+              return '<div class="note-topic-mini"><span class="dot" data-status="'+t.status+'"></span>'+escapeHtml(t.text)+'</div>';
+            }).join('') +
+            (topics.length > 5 ? '<div class="note-topic-mini" style="color:var(--ink-faint);">+'+(topics.length-5)+' más</div>' : '') +
+            '</div><div class="note-date" style="margin-top:6px;">'+doneCount+'/'+topics.length+' entendidos</div>';
+        }
+      } else {
+        bodyHtml = '<p>'+escapeHtml(n.content)+'</p>';
+      }
+      card.innerHTML = '<h4>'+escapeHtml(n.title || 'Sin título')+'</h4>' + bodyHtml + '<div class="note-date">Editada el '+fmtDate(d)+'</div>';
       card.addEventListener('click', function(){
         ui.editingNoteId = n.id;
         renderNotes();
@@ -1600,9 +1702,12 @@ import { createClient } from '@supabase/supabase-js';
   function renderNoteEditor(container){
     var isNew = ui.editingNoteId === 'new';
     var note = isNew
-      ? { subjectId: ui.notesSubjectFilter, title: '', content: '' }
+      ? { subjectId: ui.notesSubjectFilter, title: '', content: '', kind: 'text', topics: [] }
       : state.notes.find(function(n){ return n.id === ui.editingNoteId; });
     if (!note){ ui.editingNoteId = null; return; }
+
+    // copia de trabajo de los temas (se guarda de verdad recién al tocar "Guardar")
+    var workingTopics = (note.topics || []).map(function(t){ return { id: t.id, text: t.text, status: t.status || 'pendiente' }; });
 
     var box = document.createElement('div');
     box.className = 'note-editor';
@@ -1610,10 +1715,25 @@ import { createClient } from '@supabase/supabase-js';
       state.subjects.map(function(s){
         return '<option value="'+s.id+'"' + (note.subjectId === s.id ? ' selected' : '') + '>'+escapeHtml(s.name)+'</option>';
       }).join('');
+    var kind = note.kind === 'checklist' ? 'checklist' : 'text';
+
     box.innerHTML =
       '<div class="field"><label>Materia</label><select id="note-subject">'+subjectOptions+'</select></div>' +
-      '<div class="field" style="margin-top:10px;"><label>Título</label><input type="text" id="note-title" value="'+escapeHtml(note.title)+'" placeholder="Título de la nota"></div>' +
-      '<div class="field" style="margin-top:10px;"><label>Contenido</label><textarea id="note-content" placeholder="Escribí acá...">'+escapeHtml(note.content)+'</textarea></div>' +
+      '<div class="field" style="margin-top:10px;"><label>Título</label><input type="text" id="note-title" value="'+escapeHtml(note.title)+'" placeholder="Título de la nota (ej: Temas de la materia)"></div>' +
+      '<div class="field" style="margin-top:10px;"><label>Tipo de nota</label><select id="note-kind">' +
+        '<option value="text"' + (kind==='text'?' selected':'') + '>Texto libre</option>' +
+        '<option value="checklist"' + (kind==='checklist'?' selected':'') + '>Lista de temas </option>' +
+      '</select></div>' +
+      '<div class="field" id="note-content-field" style="margin-top:10px;"><label>Contenido</label><textarea id="note-content" placeholder="Escribí acá...">'+escapeHtml(note.content||'')+'</textarea></div>' +
+      '<div id="note-topics-field" style="margin-top:10px;">' +
+        '<label>Temas</label>' +
+        '<div class="topics-wrap" id="topicsWrap"></div>' +
+        '<div class="topic-add-row">' +
+          '<input type="text" id="topic-new-input" placeholder="Agregar tema ">' +
+          '<button class="btn btn-ghost" id="topic-add-btn">+ Agregar</button>' +
+        '</div>' +
+        '<div class="topics-legend">Tocá el circulito para rotar el estado: pendiente → repasado → entendido</div>' +
+      '</div>' +
       '<div class="row-gap">' +
         '<button class="btn btn-primary" id="note-save">Guardar</button>' +
         '<button class="btn btn-ghost" id="note-cancel">Cancelar</button>' +
@@ -1621,15 +1741,104 @@ import { createClient } from '@supabase/supabase-js';
       '</div>';
     container.appendChild(box);
 
+    var kindSel = document.getElementById('note-kind');
+    var contentField = document.getElementById('note-content-field');
+    var topicsField = document.getElementById('note-topics-field');
+    var topicsWrap = document.getElementById('topicsWrap');
+
+    function statusLabel(s){ return s==='entendido' ? '✓' : (s==='repasado' ? '•' : ''); }
+    function nextStatus(s){ return s==='pendiente' ? 'repasado' : (s==='repasado' ? 'entendido' : 'pendiente'); }
+
+    function renderTopicsWrap(){
+      topicsWrap.innerHTML = '';
+      if (workingTopics.length === 0){
+        var empty = document.createElement('div');
+        empty.style.cssText = 'font-size:12.5px;color:var(--ink-faint);padding:6px 0;';
+        empty.textContent = 'Todavía no agregaste temas.';
+        topicsWrap.appendChild(empty);
+        return;
+      }
+      workingTopics.forEach(function(topic){
+        var row = document.createElement('div');
+        row.className = 'topic-row';
+
+        var statusBtn = document.createElement('button');
+        statusBtn.className = 'topic-status';
+        statusBtn.setAttribute('data-status', topic.status);
+        statusBtn.textContent = statusLabel(topic.status);
+        statusBtn.title = 'Estado: ' + topic.status;
+        statusBtn.addEventListener('click', function(){
+          topic.status = nextStatus(topic.status);
+          renderTopicsWrap();
+        });
+
+        var textInput = document.createElement('input');
+        textInput.type = 'text';
+        textInput.className = 'topic-text';
+        textInput.value = topic.text;
+        textInput.addEventListener('input', function(){ topic.text = this.value; });
+
+        var removeBtn = document.createElement('button');
+        removeBtn.className = 'topic-remove';
+        removeBtn.innerHTML = '✕';
+        removeBtn.title = 'Quitar tema';
+        removeBtn.addEventListener('click', function(){
+          workingTopics = workingTopics.filter(function(x){ return x.id !== topic.id; });
+          renderTopicsWrap();
+        });
+
+        row.appendChild(statusBtn);
+        row.appendChild(textInput);
+        row.appendChild(removeBtn);
+        topicsWrap.appendChild(row);
+      });
+    }
+
+    function addTopicFromInput(){
+      var input = document.getElementById('topic-new-input');
+      var text = input.value.trim();
+      if (!text) return;
+      workingTopics.push({ id: uid('topic'), text: text, status: 'pendiente' });
+      input.value = '';
+      renderTopicsWrap();
+      input.focus();
+    }
+    document.getElementById('topic-add-btn').addEventListener('click', addTopicFromInput);
+    document.getElementById('topic-new-input').addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){ e.preventDefault(); addTopicFromInput(); }
+    });
+
+    function syncKindFields(){
+      var isChecklist = kindSel.value === 'checklist';
+      contentField.style.display = isChecklist ? 'none' : 'block';
+      topicsField.style.display = isChecklist ? 'block' : 'none';
+    }
+    kindSel.addEventListener('change', syncKindFields);
+    renderTopicsWrap();
+    syncKindFields();
+
     document.getElementById('note-save').addEventListener('click', function(){
       var title = document.getElementById('note-title').value.trim();
       var content = document.getElementById('note-content').value.trim();
       var subjectId = document.getElementById('note-subject').value;
-      if (!title && !content) return;
-      if (isNew){
-        state.notes.push({ id: uid('note'), subjectId: subjectId, title: title, content: content, updatedAt: Date.now() });
+      var noteKind = kindSel.value;
+      var cleanTopics = workingTopics.filter(function(t){ return t.text.trim(); });
+      if (noteKind === 'checklist'){
+        if (!title && cleanTopics.length === 0) return;
       } else {
-        note.title = title; note.content = content; note.subjectId = subjectId; note.updatedAt = Date.now();
+        if (!title && !content) return;
+      }
+      if (isNew){
+        state.notes.push({
+          id: uid('note'), subjectId: subjectId, title: title,
+          content: noteKind === 'checklist' ? '' : content,
+          kind: noteKind, topics: noteKind === 'checklist' ? cleanTopics : [],
+          updatedAt: Date.now()
+        });
+      } else {
+        note.title = title; note.subjectId = subjectId; note.kind = noteKind; note.updatedAt = Date.now();
+        note.content = noteKind === 'checklist' ? '' : content;
+        note.topics = noteKind === 'checklist' ? cleanTopics : [];
       }
       save();
       ui.editingNoteId = null;
