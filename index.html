@@ -1719,7 +1719,7 @@ import { createClient } from '@supabase/supabase-js';
 
     box.innerHTML =
       '<div class="field"><label>Materia</label><select id="note-subject">'+subjectOptions+'</select></div>' +
-      '<div class="field" style="margin-top:10px;"><label>Título</label><input type="text" id="note-title" value="'+escapeHtml(note.title)+'" placeholder="Título de la nota (ej: Temas de la materia)"></div>' +
+      '<div class="field" style="margin-top:10px;"><label>Título</label><input type="text" id="note-title" value="'+escapeHtml(note.title)+'" placeholder="Título de la nota"></div>' +
       '<div class="field" style="margin-top:10px;"><label>Tipo de nota</label><select id="note-kind">' +
         '<option value="text"' + (kind==='text'?' selected':'') + '>Texto libre</option>' +
         '<option value="checklist"' + (kind==='checklist'?' selected':'') + '>Lista de temas </option>' +
