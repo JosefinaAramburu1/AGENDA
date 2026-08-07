@@ -299,7 +299,8 @@
   .note-topic-mini .dot[data-status="repasado"]{background:#F2C14E;}
   .note-topic-mini .dot[data-status="entendido"]{background:var(--accent);}
 
-  .note-images-wrap{display:flex; flex-wrap:wrap; gap:8px; margin:8px 0;}
+  .note-images-wrap{display:flex; flex-wrap:wrap; gap:8px; margin:8px 0; min-height:8px; border-radius:8px; transition:background .12s;}
+  .note-images-wrap.dragover{background:var(--accent-soft); outline:2px dashed var(--accent);}
   .note-image-thumb{position:relative; width:72px; height:72px; border-radius:8px; overflow:hidden; border:1px solid var(--border); background:var(--bg);}
   .note-image-thumb img{width:100%; height:100%; object-fit:cover; display:block; cursor:pointer;}
   .note-image-thumb .rm{
@@ -315,37 +316,34 @@
   .lightbox img{max-width:100%; max-height:100%; border-radius:8px; box-shadow:var(--shadow-lg);}
 
   .week-goals-grid{
-    display:grid; grid-template-columns:repeat(7, minmax(140px,1fr)); gap:10px;
-    margin-top:14px; overflow-x:auto;
+    display:flex; flex-direction:column; gap:10px;
+    margin-top:14px;
   }
   .week-goal-col{
-    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px;
-    display:flex; flex-direction:column; gap:8px; min-width:140px;
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px;
+    display:flex; flex-direction:column; gap:8px;
   }
-  .week-goal-col.today{border-color:var(--now);}
-  .week-goal-col-head{font-family:var(--font-display); font-weight:700; font-size:13px;}
-  .week-goal-col-head .d{font-size:11px; font-weight:600; color:var(--ink-soft); display:block; margin-top:1px;}
-  .week-goal-add{display:flex; gap:4px;}
+  .week-goal-col.today{border-color:var(--now); border-width:1.5px;}
+  .week-goal-col-head{font-family:var(--font-display); font-weight:700; font-size:15px; display:flex; align-items:baseline; gap:8px;}
+  .week-goal-col-head .d{font-size:12px; font-weight:600; color:var(--ink-soft);}
+  .week-goal-add{display:flex; gap:6px;}
   .week-goal-add input{
-    flex:1; border:1px solid var(--border); border-radius:6px; padding:5px 7px; font-size:12px; background:var(--bg); min-width:0;
+    flex:1; border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13.5px; background:var(--bg); min-width:0;
   }
   .week-goal-add button{
-    background:var(--ink); color:#fff; border:none; border-radius:6px; padding:0 9px; font-size:13px; font-weight:700;
+    background:var(--ink); color:#fff; border:none; border-radius:8px; padding:0 14px; font-size:15px; font-weight:700;
   }
-  .week-goal-item{display:flex; align-items:flex-start; gap:6px; font-size:12.5px;}
+  .week-goal-item{display:flex; align-items:flex-start; gap:8px; font-size:13.5px;}
   .week-goal-item.done{opacity:.5;}
   .week-goal-item.done .txt{text-decoration:line-through;}
   .week-goal-check{
-    width:15px; height:15px; border-radius:5px; border:1.5px solid var(--border); flex:none; background:none;
-    display:flex; align-items:center; justify-content:center; font-size:9px; margin-top:1px; padding:0;
+    width:19px; height:19px; border-radius:6px; border:1.5px solid var(--border); flex:none; background:none;
+    display:flex; align-items:center; justify-content:center; font-size:11px; margin-top:1px; padding:0;
   }
   .week-goal-check.checked{background:var(--ink); border-color:var(--ink); color:#fff;}
-  .week-goal-item .txt{flex:1; line-height:1.3; word-break:break-word;}
-  .week-goal-item .rm{background:none; border:none; color:var(--ink-faint); font-size:11px; padding:0; flex:none;}
-  .week-goal-empty{font-size:11.5px; color:var(--ink-faint);}
-  @media (max-width:768px){
-    .week-goals-grid{grid-template-columns:repeat(7, minmax(150px,1fr));}
-  }
+  .week-goal-item .txt{flex:1; line-height:1.4; word-break:break-word;}
+  .week-goal-item .rm{background:none; border:none; color:var(--ink-faint); font-size:13px; padding:0; flex:none;}
+  .week-goal-empty{font-size:12.5px; color:var(--ink-faint);}
 
   #hoyTodoTitle{font-size:18px;}
   #dailyTodoList .task-title{font-size:15.5px;}
@@ -504,13 +502,6 @@
     </div>
 
     <div class="add-bar" id="eventForm" style="display:none;">
-      <div class="field" style="flex:1 1 150px;">
-        <label>Tipo</label>
-        <select id="ev-type">
-          <option value="clase">Clase fija (se repite cada semana)</option>
-          <option value="estudio">Sesión de estudio (un día puntual)</option>
-        </select>
-      </div>
       <div class="field" style="flex:1 1 140px;">
         <label>Materia</label>
         <select id="ev-subject"></select>
@@ -526,10 +517,6 @@
           <option value="5">Sábado</option>
         </select>
       </div>
-      <div class="field" id="ev-date-field" style="flex:1 1 130px; display:none;">
-        <label>Fecha</label>
-        <input type="date" id="ev-date">
-      </div>
       <div class="field" style="flex:1 1 90px;">
         <label>Desde</label>
         <input type="time" id="ev-start" value="09:00">
@@ -540,7 +527,7 @@
       </div>
       <div class="field" style="flex:2 1 160px;">
         <label>Detalle (opcional)</label>
-        <input type="text" id="ev-title" placeholder="Ej: Teórico, aula 4 / Repasar capítulo 3">
+        <input type="text" id="ev-title" placeholder="Ej: Teórico, aula 4">
       </div>
       <button class="btn btn-primary" id="ev-save">Guardar</button>
       <button class="btn btn-ghost" id="ev-cancel">Cancelar</button>
@@ -551,6 +538,11 @@
     </div>
 
     <div class="section-title">Objetivos de la semana</div>
+    <div class="week-toolbar" style="margin-top:0;">
+      <button class="month-nav-btn" id="goalsWeekPrev" title="Semana anterior">‹</button>
+      <div class="month-label" id="goalsWeekLabel" style="font-size:15px;"></div>
+      <button class="month-nav-btn" id="goalsWeekNext" title="Semana siguiente">›</button>
+    </div>
     <div class="week-goals-grid" id="weekGoalsGrid"></div>
   </section>
 
@@ -661,7 +653,8 @@ import { createClient } from '@supabase/supabase-js';
     noteSearch: '',
     editingTaskId: null,
     editingEventId: null,
-    editingTodoId: null
+    editingTodoId: null,
+    goalsWeekMonday: null
   };
 
   function uid(prefix){
@@ -936,19 +929,36 @@ import { createClient } from '@supabase/supabase-js';
     var wrap = document.getElementById('weekGoalsGrid');
     if (!wrap) return;
     wrap.innerHTML = '';
-    var todayIdx = todayColumnIndex(); // -1 los domingos
     var GOAL_DAY_NAMES = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+    var monday = ui.goalsWeekMonday;
+    var todayIso = todayISO();
 
-    for (var d=0; d<7; d++){
-      var dt = weekDateForColumn(d);
+    var sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+    var label = document.getElementById('goalsWeekLabel');
+    if (label) label.textContent = fmtDate(monday) + ' – ' + fmtDate(sunday);
+
+    // orden de los 7 días de esta semana: si "hoy" está en esta semana, arranca ahí; si no, arranca en lunes
+    var order = [];
+    for (var i=0; i<7; i++) order.push(i);
+    var todayPos = -1;
+    for (var p=0; p<7; p++){
+      var checkDt = new Date(monday); checkDt.setDate(monday.getDate() + p);
+      if (dateToISO(checkDt) === todayIso){ todayPos = p; break; }
+    }
+    if (todayPos > 0){
+      order = order.slice(todayPos).concat(order.slice(0, todayPos));
+    }
+
+    order.forEach(function(d){
+      var dt = new Date(monday); dt.setDate(monday.getDate() + d);
       var iso = dateToISO(dt);
-      var isToday = (d === 6) ? (todayIdx === -1) : (d === todayIdx);
+      var isToday = (iso === todayIso);
       var col = document.createElement('div');
       col.className = 'week-goal-col' + (isToday ? ' today' : '');
 
       var head = document.createElement('div');
       head.className = 'week-goal-col-head';
-      head.innerHTML = GOAL_DAY_NAMES[d] + '<span class="d">' + fmtDate(dt) + '</span>';
+      head.innerHTML = (isToday ? 'Hoy' : GOAL_DAY_NAMES[d]) + '<span class="d">' + fmtDate(dt) + '</span>';
       col.appendChild(head);
 
       var addRow = document.createElement('div');
@@ -993,7 +1003,7 @@ import { createClient } from '@supabase/supabase-js';
             var editInput = document.createElement('input');
             editInput.type = 'text';
             editInput.value = t.text;
-            editInput.style.cssText = 'flex:1; border:1px solid var(--border); border-radius:6px; padding:3px 6px; font-size:12px; background:var(--surface);';
+            editInput.style.cssText = 'flex:1; border:1px solid var(--border); border-radius:6px; padding:5px 8px; font-size:13px; background:var(--surface);';
             function finishEdit(){
               var val = editInput.value.trim();
               if (val) t.text = val;
@@ -1051,7 +1061,7 @@ import { createClient } from '@supabase/supabase-js';
       }
 
       wrap.appendChild(col);
-    }
+    });
   }
 
   function setupDailyTodos(){
@@ -1392,18 +1402,13 @@ import { createClient } from '@supabase/supabase-js';
   function openEventFormForEdit(ev){
     ui.editingEventId = ev.id;
     fillSubjectSelect(document.getElementById('ev-subject'));
-    document.getElementById('ev-type').value = ev.type === 'estudio' ? 'estudio' : 'clase';
     document.getElementById('ev-subject').value = ev.subjectId;
     document.getElementById('ev-start').value = ev.start;
     document.getElementById('ev-end').value = ev.end;
     document.getElementById('ev-title').value = ev.title || '';
-    document.getElementById('ev-day-field').style.display = ev.type === 'estudio' ? 'none' : 'flex';
-    document.getElementById('ev-date-field').style.display = ev.type === 'estudio' ? 'flex' : 'none';
-    if (ev.type === 'estudio'){
-      document.getElementById('ev-date').value = ev.date;
-    } else {
-      document.getElementById('ev-day').value = String(ev.day);
-    }
+    // eventos viejos tipo "estudio" (con fecha puntual, ya no se crean nuevos) se editan como clase fija de ese día de semana
+    var dayValue = (ev.type === 'estudio') ? weekdayColumnForDate(ev.date) : ev.day;
+    document.getElementById('ev-day').value = String(dayValue >= 0 ? dayValue : 0);
     document.getElementById('ev-save').textContent = 'Guardar cambios';
     document.getElementById('eventForm').style.display = 'flex';
     document.getElementById('eventForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1411,19 +1416,6 @@ import { createClient } from '@supabase/supabase-js';
 
   function setupEventForm(){
     var form = document.getElementById('eventForm');
-    var typeSel = document.getElementById('ev-type');
-    var dayField = document.getElementById('ev-day-field');
-    var dateField = document.getElementById('ev-date-field');
-
-    function syncTypeFields(){
-      var isStudy = typeSel.value === 'estudio';
-      dayField.style.display = isStudy ? 'none' : 'flex';
-      dateField.style.display = isStudy ? 'flex' : 'none';
-      if (isStudy && !document.getElementById('ev-date').value){
-        document.getElementById('ev-date').value = todayISO();
-      }
-    }
-    typeSel.addEventListener('change', syncTypeFields);
 
     document.getElementById('btnAddEvent').addEventListener('click', function(){
       ui.editingEventId = null;
@@ -1431,7 +1423,6 @@ import { createClient } from '@supabase/supabase-js';
       document.getElementById('ev-title').value = '';
       fillSubjectSelect(document.getElementById('ev-subject'));
       form.style.display = form.style.display === 'none' ? 'flex' : 'none';
-      syncTypeFields();
     });
     document.getElementById('ev-cancel').addEventListener('click', function(){
       ui.editingEventId = null;
@@ -1439,7 +1430,6 @@ import { createClient } from '@supabase/supabase-js';
       form.style.display = 'none';
     });
     document.getElementById('ev-save').addEventListener('click', function(){
-      var type = typeSel.value;
       var subjectId = document.getElementById('ev-subject').value;
       var start = document.getElementById('ev-start').value;
       var end = document.getElementById('ev-end').value;
@@ -1456,49 +1446,25 @@ import { createClient } from '@supabase/supabase-js';
       }
 
       var targetEvent = ui.editingEventId ? state.events.find(function(x){ return x.id === ui.editingEventId; }) : null;
-
-      if (type === 'estudio'){
-        var date = document.getElementById('ev-date').value;
-        if (!date){ alert('Elegí una fecha para la sesión de estudio.'); return; }
-        var wd = weekdayColumnForDate(date);
-        var conflict = state.events.find(function(ev){
-          if (ev.type === 'estudio') return ev.date === date && overlapsExisting(ev);
-          return ev.day === wd && overlapsExisting(ev);
-        });
-        if (conflict){
-          var conflictSubj = subjectById(conflict.subjectId);
-          var proceed = confirm(
-            'Ya tenés "' + (conflictSubj ? conflictSubj.name : 'algo') + '" (' + conflict.start + '–' + conflict.end + ') a esa hora ese día.\n¿Guardar igual?'
-          );
-          if (!proceed) return;
-        }
-        if (targetEvent){
-          targetEvent.subjectId = subjectId; targetEvent.type = 'estudio'; targetEvent.date = date;
-          targetEvent.start = start; targetEvent.end = end; targetEvent.title = title;
-          delete targetEvent.day;
-        } else {
-          state.events.push({ id: uid('ev'), subjectId: subjectId, type: 'estudio', date: date, start: start, end: end, title: title });
-        }
-      } else {
-        var day = parseInt(document.getElementById('ev-day').value,10);
-        var conflictClase = state.events.find(function(ev){
-          return (!ev.type || ev.type === 'clase') && ev.day === day && overlapsExisting(ev);
-        });
-        if (conflictClase){
-          var conflictSubjC = subjectById(conflictClase.subjectId);
-          var proceedC = confirm(
-            'Ya tenés "' + (conflictSubjC ? conflictSubjC.name : 'algo') + '" (' + conflictClase.start + '–' + conflictClase.end + ') ese día a esa hora.\n¿Guardar igual?'
-          );
-          if (!proceedC) return;
-        }
-        if (targetEvent){
-          targetEvent.subjectId = subjectId; targetEvent.type = 'clase'; targetEvent.day = day;
-          targetEvent.start = start; targetEvent.end = end; targetEvent.title = title;
-          delete targetEvent.date;
-        } else {
-          state.events.push({ id: uid('ev'), subjectId: subjectId, type: 'clase', day: day, start: start, end: end, title: title });
-        }
+      var day = parseInt(document.getElementById('ev-day').value,10);
+      var conflictClase = state.events.find(function(ev){
+        return (!ev.type || ev.type === 'clase') && ev.day === day && overlapsExisting(ev);
+      });
+      if (conflictClase){
+        var conflictSubjC = subjectById(conflictClase.subjectId);
+        var proceedC = confirm(
+          'Ya tenés "' + (conflictSubjC ? conflictSubjC.name : 'algo') + '" (' + conflictClase.start + '–' + conflictClase.end + ') ese día a esa hora.\n¿Guardar igual?'
+        );
+        if (!proceedC) return;
       }
+      if (targetEvent){
+        targetEvent.subjectId = subjectId; targetEvent.type = 'clase'; targetEvent.day = day;
+        targetEvent.start = start; targetEvent.end = end; targetEvent.title = title;
+        delete targetEvent.date;
+      } else {
+        state.events.push({ id: uid('ev'), subjectId: subjectId, type: 'clase', day: day, start: start, end: end, title: title });
+      }
+
       save();
       ui.editingEventId = null;
       document.getElementById('ev-save').textContent = 'Guardar';
@@ -1543,6 +1509,21 @@ import { createClient } from '@supabase/supabase-js';
       ui.monthCursor = new Date(ui.monthCursor.getFullYear(), ui.monthCursor.getMonth()+1, 1);
       ui.selectedMonthDate = null;
       renderMonth();
+    });
+  }
+
+  function setupGoalsWeekNav(){
+    document.getElementById('goalsWeekPrev').addEventListener('click', function(){
+      var d = new Date(ui.goalsWeekMonday);
+      d.setDate(d.getDate() - 7);
+      ui.goalsWeekMonday = d;
+      renderWeekGoals();
+    });
+    document.getElementById('goalsWeekNext').addEventListener('click', function(){
+      var d = new Date(ui.goalsWeekMonday);
+      d.setDate(d.getDate() + 7);
+      ui.goalsWeekMonday = d;
+      renderWeekGoals();
     });
   }
 
@@ -1691,24 +1672,7 @@ import { createClient } from '@supabase/supabase-js';
       document.getElementById('tk-title').focus();
     });
 
-    var addStudyBtn = document.createElement('button');
-    addStudyBtn.className = 'btn btn-ghost';
-    addStudyBtn.textContent = '+ Sesión de estudio este día';
-    addStudyBtn.addEventListener('click', function(){
-      switchView('semana');
-      ui.editingEventId = null;
-      document.getElementById('ev-save').textContent = 'Guardar';
-      document.getElementById('ev-title').value = '';
-      fillSubjectSelect(document.getElementById('ev-subject'));
-      document.getElementById('eventForm').style.display = 'flex';
-      document.getElementById('ev-type').value = 'estudio';
-      document.getElementById('ev-day-field').style.display = 'none';
-      document.getElementById('ev-date-field').style.display = 'flex';
-      document.getElementById('ev-date').value = iso;
-    });
-
     actions.appendChild(addTaskBtn);
-    actions.appendChild(addStudyBtn);
     panel.appendChild(actions);
 
     wrap.appendChild(panel);
@@ -2058,6 +2022,7 @@ import { createClient } from '@supabase/supabase-js';
         '<div class="note-images-wrap" id="noteImagesWrap"></div>' +
         '<button type="button" class="btn btn-ghost" id="note-image-add-btn">+ Agregar imagen</button>' +
         '<input type="file" id="note-image-input" accept="image/*" multiple style="display:none;">' +
+        '<div style="font-size:11.5px; color:var(--ink-faint); margin-top:6px;">También podés arrastrar un archivo hasta acá, o pegar (Cmd+V) una captura recién copiada.</div>' +
       '</div>' +
       '<div id="note-topics-field" style="margin-top:10px;">' +
         '<label>Temas</label>' +
@@ -2131,9 +2096,12 @@ import { createClient } from '@supabase/supabase-js';
     document.getElementById('note-image-add-btn').addEventListener('click', function(){
       document.getElementById('note-image-input').click();
     });
-    document.getElementById('note-image-input').addEventListener('change', function(){
-      var files = Array.prototype.slice.call(this.files || []);
-      this.value = '';
+
+    function addImageFiles(fileList){
+      var files = Array.prototype.slice.call(fileList || []).filter(function(f){
+        return f.type && f.type.indexOf('image/') === 0;
+      });
+      if (files.length === 0) return;
       Promise.all(files.map(resizeImageFile)).then(function(dataUrls){
         dataUrls.forEach(function(dataUrl){
           workingImages.push({ id: uid('img'), dataUrl: dataUrl });
@@ -2142,6 +2110,42 @@ import { createClient } from '@supabase/supabase-js';
       }).catch(function(){
         alert('No se pudo cargar alguna de las imágenes.');
       });
+    }
+
+    document.getElementById('note-image-input').addEventListener('change', function(){
+      addImageFiles(this.files);
+      this.value = '';
+    });
+
+    // arrastrar y soltar un archivo (ej. una captura de pantalla) directo sobre el recuadro de imágenes
+    imagesWrap.addEventListener('dragover', function(e){
+      e.preventDefault();
+      imagesWrap.classList.add('dragover');
+    });
+    imagesWrap.addEventListener('dragleave', function(){
+      imagesWrap.classList.remove('dragover');
+    });
+    imagesWrap.addEventListener('drop', function(e){
+      e.preventDefault();
+      imagesWrap.classList.remove('dragover');
+      if (e.dataTransfer && e.dataTransfer.files) addImageFiles(e.dataTransfer.files);
+    });
+
+    // pegar una captura copiada al portapapeles (Cmd/Ctrl+V) en cualquier parte del editor de la nota
+    box.addEventListener('paste', function(e){
+      var clipFiles = [];
+      if (e.clipboardData && e.clipboardData.items){
+        for (var i=0; i<e.clipboardData.items.length; i++){
+          var item = e.clipboardData.items[i];
+          if (item.kind === 'file' && item.type.indexOf('image/') === 0){
+            clipFiles.push(item.getAsFile());
+          }
+        }
+      }
+      if (clipFiles.length){
+        e.preventDefault();
+        addImageFiles(clipFiles);
+      }
     });
 
     function statusLabel(s){ return s==='entendido' ? '✓' : (s==='repasado' ? '•' : ''); }
@@ -2633,10 +2637,12 @@ import { createClient } from '@supabase/supabase-js';
 
   function init(){
     ui.monthCursor = startOfMonth(new Date());
+    ui.goalsWeekMonday = currentWeekMonday();
     renderToday();
     setupTabs();
     setupEventForm();
     setupMonthNav();
+    setupGoalsWeekNav();
     setupTaskForm();
     setupDailyTodos();
     setupNotes();
