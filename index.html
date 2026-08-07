@@ -951,7 +951,7 @@ import { createClient } from '@supabase/supabase-js';
       if (dateToISO(checkDt) === todayIso){ todayPos = p; break; }
     }
     if (todayPos > 0){
-      order = order.slice(todayPos).concat(order.slice(0, todayPos));
+      order = order.slice(todayPos); // solo de hoy en adelante, sin dar la vuelta a los días ya pasados
     }
 
     order.forEach(function(d){
