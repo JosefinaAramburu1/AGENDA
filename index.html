@@ -309,6 +309,11 @@
   }
   .note-card-images{display:flex; gap:6px; margin:6px 0;}
   .note-card-images img{width:44px; height:44px; object-fit:cover; border-radius:6px; border:1px solid var(--border);}
+  .note-card-link{
+    display:inline-flex; align-items:center; gap:4px; font-size:12.5px; font-weight:700; color:var(--accent);
+    text-decoration:none; margin:2px 0 4px;
+  }
+  .note-card-link:hover{text-decoration:underline;}
   .lightbox{
     position:fixed; inset:0; background:rgba(20,20,25,.88); z-index:200;
     display:flex; align-items:center; justify-content:center; padding:24px; cursor:zoom-out;
@@ -1974,7 +1979,13 @@ import { createClient } from '@supabase/supabase-js';
           }).join('') +
           '</div>';
       }
-      card.innerHTML = '<h4>'+escapeHtml(n.title || 'Sin título')+'</h4>' + imagesHtml + bodyHtml + '<div class="note-date">Editada el '+fmtDate(d)+'</div>';
+      var linkHtml = '';
+      if (n.link){
+        linkHtml = '<a class="note-card-link" href="'+escapeHtml(n.link)+'" target="_blank" rel="noopener noreferrer">🔗 Abrir documento</a>';
+      }
+      card.innerHTML = '<h4>'+escapeHtml(n.title || 'Sin título')+'</h4>' + linkHtml + imagesHtml + bodyHtml + '<div class="note-date">Editada el '+fmtDate(d)+'</div>';
+      var linkEl = card.querySelector('.note-card-link');
+      if (linkEl) linkEl.addEventListener('click', function(e){ e.stopPropagation(); });
       card.querySelectorAll('.note-card-thumb').forEach(function(thumbEl){
         thumbEl.addEventListener('click', function(e){
           e.stopPropagation();
@@ -1993,7 +2004,7 @@ import { createClient } from '@supabase/supabase-js';
   function renderNoteEditor(container){
     var isNew = ui.editingNoteId === 'new';
     var note = isNew
-      ? { subjectId: ui.notesSubjectFilter, title: '', content: '', kind: 'text', topics: [], images: [] }
+      ? { subjectId: ui.notesSubjectFilter, title: '', content: '', kind: 'text', topics: [], images: [], link: '' }
       : state.notes.find(function(n){ return n.id === ui.editingNoteId; });
     if (!note){ ui.editingNoteId = null; return; }
 
@@ -2012,6 +2023,7 @@ import { createClient } from '@supabase/supabase-js';
     box.innerHTML =
       '<div class="field"><label>Materia</label><select id="note-subject">'+subjectOptions+'</select></div>' +
       '<div class="field" style="margin-top:10px;"><label>Título</label><input type="text" id="note-title" value="'+escapeHtml(note.title)+'" placeholder="Título de la nota"></div>' +
+      '<div class="field" style="margin-top:10px;"><label>Link (a un doc externo, opcional)</label><input type="text" id="note-link" value="'+escapeHtml(note.link||'')+'" placeholder="https://docs.google.com/..."></div>' +
       '<div class="field" style="margin-top:10px;"><label>Tipo de nota</label><select id="note-kind">' +
         '<option value="text"' + (kind==='text'?' selected':'') + '>Texto libre</option>' +
         '<option value="checklist"' + (kind==='checklist'?' selected':'') + '>Lista de temas </option>' +
@@ -2222,13 +2234,14 @@ import { createClient } from '@supabase/supabase-js';
     document.getElementById('note-save').addEventListener('click', function(){
       var title = document.getElementById('note-title').value.trim();
       var content = document.getElementById('note-content').value.trim();
+      var link = document.getElementById('note-link').value.trim();
       var subjectId = document.getElementById('note-subject').value;
       var noteKind = kindSel.value;
       var cleanTopics = workingTopics.filter(function(t){ return t.text.trim(); });
       if (noteKind === 'checklist'){
-        if (!title && cleanTopics.length === 0) return;
+        if (!title && cleanTopics.length === 0 && !link) return;
       } else {
-        if (!title && !content) return;
+        if (!title && !content && !link) return;
       }
       if (isNew){
         state.notes.push({
@@ -2236,6 +2249,7 @@ import { createClient } from '@supabase/supabase-js';
           content: noteKind === 'checklist' ? '' : content,
           kind: noteKind, topics: noteKind === 'checklist' ? cleanTopics : [],
           images: workingImages,
+          link: link,
           updatedAt: Date.now()
         });
       } else {
@@ -2243,6 +2257,7 @@ import { createClient } from '@supabase/supabase-js';
         note.content = noteKind === 'checklist' ? '' : content;
         note.topics = noteKind === 'checklist' ? cleanTopics : [];
         note.images = workingImages;
+        note.link = link;
       }
       save();
       ui.editingNoteId = null;
