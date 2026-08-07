@@ -135,14 +135,14 @@
   .grid-head .cell{
     padding:10px 6px; text-align:center; font-weight:700; font-size:16px; font-family:var(--font-display);
     border-bottom:1px solid var(--border); border-left:1px solid var(--border); background:var(--surface);
-    position:sticky; top:0; color:#000;
+    position:sticky; top:0; color:var(--ink);
   }
   .day-badge{
     position:absolute; top:4px; right:4px; background:var(--danger); color:#fff; font-size:9px; font-weight:700;
     min-width:14px; height:14px; padding:0 3px; border-radius:999px; line-height:14px; cursor:pointer;
   }
   .grid-head .cell:first-child{border-left:none;}
-  .grid-head-date{font-size:14.5px; font-weight:700; color:#000; margin-top:2px; text-transform:none;}
+  .grid-head-date{font-size:14.5px; font-weight:700; color:var(--ink); margin-top:2px; text-transform:none;}
   .grid-head .cell.today .grid-head-date{color:var(--now);}
   .hour-col{display:flex; flex-direction:column;}
   .hour-label{
@@ -299,6 +299,58 @@
   .note-topic-mini .dot[data-status="repasado"]{background:#F2C14E;}
   .note-topic-mini .dot[data-status="entendido"]{background:var(--accent);}
 
+  .note-images-wrap{display:flex; flex-wrap:wrap; gap:8px; margin:8px 0;}
+  .note-image-thumb{position:relative; width:72px; height:72px; border-radius:8px; overflow:hidden; border:1px solid var(--border); background:var(--bg);}
+  .note-image-thumb img{width:100%; height:100%; object-fit:cover; display:block; cursor:pointer;}
+  .note-image-thumb .rm{
+    position:absolute; top:2px; right:2px; background:rgba(0,0,0,.6); color:#fff; border:none;
+    border-radius:50%; width:18px; height:18px; font-size:11px; line-height:1; padding:0;
+  }
+  .note-card-images{display:flex; gap:6px; margin:6px 0;}
+  .note-card-images img{width:44px; height:44px; object-fit:cover; border-radius:6px; border:1px solid var(--border);}
+  .lightbox{
+    position:fixed; inset:0; background:rgba(20,20,25,.88); z-index:200;
+    display:flex; align-items:center; justify-content:center; padding:24px; cursor:zoom-out;
+  }
+  .lightbox img{max-width:100%; max-height:100%; border-radius:8px; box-shadow:var(--shadow-lg);}
+
+  .week-goals-grid{
+    display:grid; grid-template-columns:repeat(7, minmax(140px,1fr)); gap:10px;
+    margin-top:14px; overflow-x:auto;
+  }
+  .week-goal-col{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px;
+    display:flex; flex-direction:column; gap:8px; min-width:140px;
+  }
+  .week-goal-col.today{border-color:var(--now);}
+  .week-goal-col-head{font-family:var(--font-display); font-weight:700; font-size:13px;}
+  .week-goal-col-head .d{font-size:11px; font-weight:600; color:var(--ink-soft); display:block; margin-top:1px;}
+  .week-goal-add{display:flex; gap:4px;}
+  .week-goal-add input{
+    flex:1; border:1px solid var(--border); border-radius:6px; padding:5px 7px; font-size:12px; background:var(--bg); min-width:0;
+  }
+  .week-goal-add button{
+    background:var(--ink); color:#fff; border:none; border-radius:6px; padding:0 9px; font-size:13px; font-weight:700;
+  }
+  .week-goal-item{display:flex; align-items:flex-start; gap:6px; font-size:12.5px;}
+  .week-goal-item.done{opacity:.5;}
+  .week-goal-item.done .txt{text-decoration:line-through;}
+  .week-goal-check{
+    width:15px; height:15px; border-radius:5px; border:1.5px solid var(--border); flex:none; background:none;
+    display:flex; align-items:center; justify-content:center; font-size:9px; margin-top:1px; padding:0;
+  }
+  .week-goal-check.checked{background:var(--ink); border-color:var(--ink); color:#fff;}
+  .week-goal-item .txt{flex:1; line-height:1.3; word-break:break-word;}
+  .week-goal-item .rm{background:none; border:none; color:var(--ink-faint); font-size:11px; padding:0; flex:none;}
+  .week-goal-empty{font-size:11.5px; color:var(--ink-faint);}
+  @media (max-width:768px){
+    .week-goals-grid{grid-template-columns:repeat(7, minmax(150px,1fr));}
+  }
+
+  #hoyTodoTitle{font-size:18px;}
+  #dailyTodoList .task-title{font-size:15.5px;}
+  #dailyTodoList .task-check{width:22px; height:22px;}
+
   /* ================= MATERIAS ================= */
   .subject-row{
     display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--surface);
@@ -424,7 +476,7 @@
     <button data-view="materias">Materias</button>
   </nav>
 
-  <div id="legendWrap" class="legend"></div>
+  <div id="legendWrap" class="legend" style="display:none;"></div>
 
   <div id="loading" class="loading">Cargando tu organizador…</div>
 
@@ -432,6 +484,12 @@
   <section class="view active" id="view-hoy">
     <div id="hoyNowCard"></div>
     <div id="hoyAttendanceWarnings"></div>
+    <div class="section-title" id="hoyTodoTitle">Para hoy (lista rápida)</div>
+    <div class="add-bar" style="margin-top:0;">
+      <input type="text" id="todo-new-input" placeholder="Ej: llevar la calculadora, comprar apuntes...">
+      <button class="btn btn-primary" id="todo-add-btn">+ Agregar</button>
+    </div>
+    <div id="dailyTodoList"></div>
     <div class="section-title">Resto del día</div>
     <div id="hoyRestList"></div>
     <div class="section-title">Para no perderte</div>
@@ -491,6 +549,9 @@
     <div class="grid-wrap">
       <div class="grid" id="weekGrid"></div>
     </div>
+
+    <div class="section-title">Objetivos de la semana</div>
+    <div class="week-goals-grid" id="weekGoalsGrid"></div>
   </section>
 
   <!-- ================= MES ================= -->
@@ -586,6 +647,7 @@ import { createClient } from '@supabase/supabase-js';
     events: [],
     tasks: [],
     notes: [],
+    dailyTodos: [],
     scheduleSeeded: false
   };
   var ui = {
@@ -598,7 +660,8 @@ import { createClient } from '@supabase/supabase-js';
     taskSearch: '',
     noteSearch: '',
     editingTaskId: null,
-    editingEventId: null
+    editingEventId: null,
+    editingTodoId: null
   };
 
   function uid(prefix){
@@ -634,6 +697,7 @@ import { createClient } from '@supabase/supabase-js';
       events: state.events,
       tasks: state.tasks,
       notes: state.notes,
+      dailyTodos: state.dailyTodos,
       scheduleSeeded: state.scheduleSeeded
     };
     supabase.from('app_state').upsert({
@@ -656,6 +720,7 @@ import { createClient } from '@supabase/supabase-js';
           state.events = parsed.events || [];
           state.tasks = parsed.tasks || [];
           state.notes = parsed.notes || [];
+          state.dailyTodos = parsed.dailyTodos || [];
           state.scheduleSeeded = parsed.scheduleSeeded || false;
         } else {
           state.subjects = defaultSubjects();
@@ -768,7 +833,245 @@ import { createClient } from '@supabase/supabase-js';
     return null; // no hay clase corriendo ahora: no forzamos ninguna materia
   }
 
+  function renderDailyTodos(){
+    var wrap = document.getElementById('dailyTodoList');
+    wrap.innerHTML = '';
+    var iso = todayISO();
+    var items = state.dailyTodos.filter(function(t){ return t.date === iso; });
+
+    if (items.length === 0){
+      wrap.innerHTML = '<div class="empty-state" style="padding:14px;">Nada anotado para hoy todavía.</div>';
+      return;
+    }
+
+    items.forEach(function(t){
+      var row = document.createElement('div');
+      row.className = 'task-row' + (t.done ? ' done' : '');
+      row.style.borderLeftColor = 'var(--ink-faint)';
+
+      if (t.id === ui.editingTodoId){
+        row.style.flexDirection = 'column';
+        row.style.alignItems = 'stretch';
+        row.style.gap = '8px';
+        var editInput = document.createElement('input');
+        editInput.type = 'text';
+        editInput.value = t.text;
+        editInput.style.cssText = 'border:1px solid var(--border); border-radius:8px; padding:8px 10px; background:var(--bg); font-size:14px;';
+        var editRow = document.createElement('div');
+        editRow.className = 'row-gap';
+        editRow.style.marginTop = '0';
+        var saveBtn = document.createElement('button');
+        saveBtn.className = 'btn btn-primary';
+        saveBtn.textContent = 'Guardar';
+        saveBtn.addEventListener('click', function(){
+          var val = editInput.value.trim();
+          if (val) t.text = val;
+          ui.editingTodoId = null;
+          save();
+          renderDailyTodos();
+          renderWeekGoals();
+        });
+        var cancelBtn = document.createElement('button');
+        cancelBtn.className = 'btn btn-ghost';
+        cancelBtn.textContent = 'Cancelar';
+        cancelBtn.addEventListener('click', function(){
+          ui.editingTodoId = null;
+          renderDailyTodos();
+        });
+        editInput.addEventListener('keydown', function(e){
+          if (e.key === 'Enter'){ e.preventDefault(); saveBtn.click(); }
+        });
+        editRow.appendChild(saveBtn);
+        editRow.appendChild(cancelBtn);
+        row.appendChild(editInput);
+        row.appendChild(editRow);
+        wrap.appendChild(row);
+        return;
+      }
+
+      var check = document.createElement('button');
+      check.className = 'task-check' + (t.done ? ' checked' : '');
+      check.innerHTML = t.done ? '✓' : '';
+      check.addEventListener('click', function(){
+        t.done = !t.done;
+        save();
+        renderDailyTodos();
+        renderWeekGoals();
+      });
+
+      var main = document.createElement('div');
+      main.className = 'task-main';
+      main.innerHTML = '<div class="task-title">'+escapeHtml(t.text)+'</div>';
+
+      var edit = document.createElement('button');
+      edit.className = 'icon-btn';
+      edit.innerHTML = '✎';
+      edit.title = 'Editar';
+      edit.addEventListener('click', function(){
+        ui.editingTodoId = t.id;
+        renderDailyTodos();
+      });
+
+      var del = document.createElement('button');
+      del.className = 'icon-btn';
+      del.innerHTML = '✕';
+      del.title = 'Eliminar';
+      del.addEventListener('click', function(){
+        state.dailyTodos = state.dailyTodos.filter(function(x){ return x.id !== t.id; });
+        save();
+        renderDailyTodos();
+        renderWeekGoals();
+      });
+
+      row.appendChild(check);
+      row.appendChild(main);
+      row.appendChild(edit);
+      row.appendChild(del);
+      wrap.appendChild(row);
+    });
+  }
+
+  // ---- objetivos semanales (misma data que la lista rápida de Hoy, una columna por día) ----
+  function renderWeekGoals(){
+    var wrap = document.getElementById('weekGoalsGrid');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    var todayIdx = todayColumnIndex(); // -1 los domingos
+    var GOAL_DAY_NAMES = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+
+    for (var d=0; d<7; d++){
+      var dt = weekDateForColumn(d);
+      var iso = dateToISO(dt);
+      var isToday = (d === 6) ? (todayIdx === -1) : (d === todayIdx);
+      var col = document.createElement('div');
+      col.className = 'week-goal-col' + (isToday ? ' today' : '');
+
+      var head = document.createElement('div');
+      head.className = 'week-goal-col-head';
+      head.innerHTML = GOAL_DAY_NAMES[d] + '<span class="d">' + fmtDate(dt) + '</span>';
+      col.appendChild(head);
+
+      var addRow = document.createElement('div');
+      addRow.className = 'week-goal-add';
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Agregar...';
+      var addBtn = document.createElement('button');
+      addBtn.textContent = '+';
+      function makeAdd(inputEl, dayIso){
+        return function(){
+          var text = inputEl.value.trim();
+          if (!text) return;
+          state.dailyTodos.push({ id: uid('todo'), date: dayIso, text: text, done: false });
+          save();
+          inputEl.value = '';
+          renderWeekGoals();
+          renderDailyTodos();
+        };
+      }
+      var doAdd = makeAdd(input, iso);
+      addBtn.addEventListener('click', doAdd);
+      input.addEventListener('keydown', function(e){
+        if (e.key === 'Enter'){ e.preventDefault(); this.nextElementSibling && this.nextElementSibling.click(); }
+      });
+      addRow.appendChild(input);
+      addRow.appendChild(addBtn);
+      col.appendChild(addRow);
+
+      var items = state.dailyTodos.filter(function(t){ return t.date === iso; });
+      if (items.length === 0){
+        var empty = document.createElement('div');
+        empty.className = 'week-goal-empty';
+        empty.textContent = 'Nada cargado.';
+        col.appendChild(empty);
+      } else {
+        items.forEach(function(t){
+          var row = document.createElement('div');
+          row.className = 'week-goal-item' + (t.done ? ' done' : '');
+
+          if (t.id === ui.editingTodoId){
+            var editInput = document.createElement('input');
+            editInput.type = 'text';
+            editInput.value = t.text;
+            editInput.style.cssText = 'flex:1; border:1px solid var(--border); border-radius:6px; padding:3px 6px; font-size:12px; background:var(--surface);';
+            function finishEdit(){
+              var val = editInput.value.trim();
+              if (val) t.text = val;
+              ui.editingTodoId = null;
+              save();
+              renderWeekGoals();
+              renderDailyTodos();
+            }
+            editInput.addEventListener('keydown', function(e){
+              if (e.key === 'Enter'){ e.preventDefault(); finishEdit(); }
+              if (e.key === 'Escape'){ ui.editingTodoId = null; renderWeekGoals(); }
+            });
+            editInput.addEventListener('blur', finishEdit);
+            row.appendChild(editInput);
+            col.appendChild(row);
+            setTimeout(function(){ editInput.focus(); }, 0);
+            return;
+          }
+
+          var check = document.createElement('button');
+          check.className = 'week-goal-check' + (t.done ? ' checked' : '');
+          check.innerHTML = t.done ? '✓' : '';
+          check.addEventListener('click', function(){
+            t.done = !t.done;
+            save();
+            renderWeekGoals();
+            renderDailyTodos();
+          });
+
+          var txt = document.createElement('span');
+          txt.className = 'txt';
+          txt.textContent = t.text;
+          txt.title = 'Tocar para editar';
+          txt.style.cursor = 'text';
+          txt.addEventListener('click', function(){
+            ui.editingTodoId = t.id;
+            renderWeekGoals();
+          });
+
+          var rm = document.createElement('button');
+          rm.className = 'rm';
+          rm.innerHTML = '✕';
+          rm.addEventListener('click', function(){
+            state.dailyTodos = state.dailyTodos.filter(function(x){ return x.id !== t.id; });
+            save();
+            renderWeekGoals();
+            renderDailyTodos();
+          });
+
+          row.appendChild(check);
+          row.appendChild(txt);
+          row.appendChild(rm);
+          col.appendChild(row);
+        });
+      }
+
+      wrap.appendChild(col);
+    }
+  }
+
+  function setupDailyTodos(){
+    var input = document.getElementById('todo-new-input');
+    function addTodo(){
+      var text = input.value.trim();
+      if (!text) return;
+      state.dailyTodos.push({ id: uid('todo'), date: todayISO(), text: text, done: false });
+      save();
+      input.value = '';
+      renderDailyTodos();
+    }
+    document.getElementById('todo-add-btn').addEventListener('click', addTodo);
+    input.addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){ e.preventDefault(); addTodo(); }
+    });
+  }
+
   function renderHoy(){
+    renderDailyTodos();
     var evs = todaysEventsSorted();
     var nowMin = new Date().getHours()*60 + new Date().getMinutes();
     var current = null, next = null, rest = [];
@@ -909,6 +1212,16 @@ import { createClient } from '@supabase/supabase-js';
     var div = document.createElement('div');
     div.textContent = str == null ? '' : str;
     return div.innerHTML;
+  }
+
+  function openLightbox(dataUrl){
+    var overlay = document.createElement('div');
+    overlay.className = 'lightbox';
+    var img = document.createElement('img');
+    img.src = dataUrl;
+    overlay.appendChild(img);
+    overlay.addEventListener('click', function(){ overlay.remove(); });
+    document.body.appendChild(overlay);
   }
 
   // ---------- SEMANA ----------
@@ -1689,7 +2002,21 @@ import { createClient } from '@supabase/supabase-js';
       } else {
         bodyHtml = '<p>'+escapeHtml(n.content)+'</p>';
       }
-      card.innerHTML = '<h4>'+escapeHtml(n.title || 'Sin título')+'</h4>' + bodyHtml + '<div class="note-date">Editada el '+fmtDate(d)+'</div>';
+      var imagesHtml = '';
+      if (n.images && n.images.length){
+        imagesHtml = '<div class="note-card-images">' +
+          n.images.slice(0,4).map(function(img){
+            return '<img class="note-card-thumb" data-src="'+img.dataUrl+'" src="'+img.dataUrl+'">';
+          }).join('') +
+          '</div>';
+      }
+      card.innerHTML = '<h4>'+escapeHtml(n.title || 'Sin título')+'</h4>' + imagesHtml + bodyHtml + '<div class="note-date">Editada el '+fmtDate(d)+'</div>';
+      card.querySelectorAll('.note-card-thumb').forEach(function(thumbEl){
+        thumbEl.addEventListener('click', function(e){
+          e.stopPropagation();
+          openLightbox(thumbEl.getAttribute('data-src'));
+        });
+      });
       card.addEventListener('click', function(){
         ui.editingNoteId = n.id;
         renderNotes();
@@ -1702,12 +2029,13 @@ import { createClient } from '@supabase/supabase-js';
   function renderNoteEditor(container){
     var isNew = ui.editingNoteId === 'new';
     var note = isNew
-      ? { subjectId: ui.notesSubjectFilter, title: '', content: '', kind: 'text', topics: [] }
+      ? { subjectId: ui.notesSubjectFilter, title: '', content: '', kind: 'text', topics: [], images: [] }
       : state.notes.find(function(n){ return n.id === ui.editingNoteId; });
     if (!note){ ui.editingNoteId = null; return; }
 
     // copia de trabajo de los temas (se guarda de verdad recién al tocar "Guardar")
     var workingTopics = (note.topics || []).map(function(t){ return { id: t.id, text: t.text, status: t.status || 'pendiente' }; });
+    var workingImages = (note.images || []).map(function(img){ return { id: img.id, dataUrl: img.dataUrl }; });
 
     var box = document.createElement('div');
     box.className = 'note-editor';
@@ -1725,6 +2053,12 @@ import { createClient } from '@supabase/supabase-js';
         '<option value="checklist"' + (kind==='checklist'?' selected':'') + '>Lista de temas </option>' +
       '</select></div>' +
       '<div class="field" id="note-content-field" style="margin-top:10px;"><label>Contenido</label><textarea id="note-content" placeholder="Escribí acá...">'+escapeHtml(note.content||'')+'</textarea></div>' +
+      '<div class="field" style="margin-top:10px;">' +
+        '<label>Imágenes (fotos de tablas, cronogramas, etc.)</label>' +
+        '<div class="note-images-wrap" id="noteImagesWrap"></div>' +
+        '<button type="button" class="btn btn-ghost" id="note-image-add-btn">+ Agregar imagen</button>' +
+        '<input type="file" id="note-image-input" accept="image/*" multiple style="display:none;">' +
+      '</div>' +
       '<div id="note-topics-field" style="margin-top:10px;">' +
         '<label>Temas</label>' +
         '<div class="topics-wrap" id="topicsWrap"></div>' +
@@ -1745,6 +2079,70 @@ import { createClient } from '@supabase/supabase-js';
     var contentField = document.getElementById('note-content-field');
     var topicsField = document.getElementById('note-topics-field');
     var topicsWrap = document.getElementById('topicsWrap');
+
+    // ---- imágenes ----
+    var imagesWrap = document.getElementById('noteImagesWrap');
+    function renderImagesWrap(){
+      imagesWrap.innerHTML = '';
+      workingImages.forEach(function(img){
+        var thumb = document.createElement('div');
+        thumb.className = 'note-image-thumb';
+        var imgEl = document.createElement('img');
+        imgEl.src = img.dataUrl;
+        imgEl.addEventListener('click', function(){ openLightbox(img.dataUrl); });
+        var rm = document.createElement('button');
+        rm.className = 'rm';
+        rm.innerHTML = '✕';
+        rm.title = 'Quitar imagen';
+        rm.addEventListener('click', function(){
+          workingImages = workingImages.filter(function(x){ return x.id !== img.id; });
+          renderImagesWrap();
+        });
+        thumb.appendChild(imgEl);
+        thumb.appendChild(rm);
+        imagesWrap.appendChild(thumb);
+      });
+    }
+    renderImagesWrap();
+
+    function resizeImageFile(file){
+      return new Promise(function(resolve, reject){
+        var reader = new FileReader();
+        reader.onload = function(){
+          var img = new Image();
+          img.onload = function(){
+            var maxDim = 1100;
+            var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+            var canvas = document.createElement('canvas');
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', 0.75));
+          };
+          img.onerror = reject;
+          img.src = reader.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    document.getElementById('note-image-add-btn').addEventListener('click', function(){
+      document.getElementById('note-image-input').click();
+    });
+    document.getElementById('note-image-input').addEventListener('change', function(){
+      var files = Array.prototype.slice.call(this.files || []);
+      this.value = '';
+      Promise.all(files.map(resizeImageFile)).then(function(dataUrls){
+        dataUrls.forEach(function(dataUrl){
+          workingImages.push({ id: uid('img'), dataUrl: dataUrl });
+        });
+        renderImagesWrap();
+      }).catch(function(){
+        alert('No se pudo cargar alguna de las imágenes.');
+      });
+    });
 
     function statusLabel(s){ return s==='entendido' ? '✓' : (s==='repasado' ? '•' : ''); }
     function nextStatus(s){ return s==='pendiente' ? 'repasado' : (s==='repasado' ? 'entendido' : 'pendiente'); }
@@ -1833,12 +2231,14 @@ import { createClient } from '@supabase/supabase-js';
           id: uid('note'), subjectId: subjectId, title: title,
           content: noteKind === 'checklist' ? '' : content,
           kind: noteKind, topics: noteKind === 'checklist' ? cleanTopics : [],
+          images: workingImages,
           updatedAt: Date.now()
         });
       } else {
         note.title = title; note.subjectId = subjectId; note.kind = noteKind; note.updatedAt = Date.now();
         note.content = noteKind === 'checklist' ? '' : content;
         note.topics = noteKind === 'checklist' ? cleanTopics : [];
+        note.images = workingImages;
       }
       save();
       ui.editingNoteId = null;
@@ -2053,7 +2453,7 @@ import { createClient } from '@supabase/supabase-js';
     document.getElementById('view-' + view).classList.add('active');
     // en Notas ya hay un selector de materia propio (obligatorio, una sola a la vez);
     // se oculta el filtro global de arriba para no mostrar los mismos chips duplicados
-    document.getElementById('legendWrap').style.display = (view === 'notas') ? 'none' : 'flex';
+    document.getElementById('legendWrap').style.display = (view === 'notas' || view === 'hoy') ? 'none' : 'flex';
   }
 
   function setupTabs(){
@@ -2077,6 +2477,7 @@ import { createClient } from '@supabase/supabase-js';
     renderLegend();
     renderHoy();
     renderWeekGrid();
+    renderWeekGoals();
     renderMonth();
     renderTasks();
     renderNotes();
@@ -2206,10 +2607,25 @@ import { createClient } from '@supabase/supabase-js';
     });
   }
 
+  // Cualquier ítem de la lista rápida que no se tildó y quedó en un día anterior,
+  // pasa solo a la fecha de hoy (para que no se "pierda" al cambiar de día)
+  function rolloverDailyTodos(){
+    var todayIso = todayISO();
+    var changed = false;
+    state.dailyTodos.forEach(function(t){
+      if (!t.done && t.date < todayIso){
+        t.date = todayIso;
+        changed = true;
+      }
+    });
+    if (changed) save();
+  }
+
   function bootstrapData(){
     document.getElementById('loading').style.display = 'block';
     load().then(function(){
       if (state.events.length === 0) seedDefaultEvents();
+      rolloverDailyTodos();
       document.getElementById('loading').style.display = 'none';
       renderAll();
     });
@@ -2222,6 +2638,7 @@ import { createClient } from '@supabase/supabase-js';
     setupEventForm();
     setupMonthNav();
     setupTaskForm();
+    setupDailyTodos();
     setupNotes();
     setupSubjects();
     setupQuickNote();
@@ -2242,7 +2659,7 @@ import { createClient } from '@supabase/supabase-js';
     });
 
     // mantiene la línea de "ahora" y la tarjeta de "Hoy" al día sin recargar
-    setInterval(function(){ renderWeekGrid(); renderHoy(); }, 60000);
+    setInterval(function(){ rolloverDailyTodos(); renderWeekGrid(); renderHoy(); renderWeekGoals(); }, 60000);
   }
 
   document.addEventListener('DOMContentLoaded', init);
