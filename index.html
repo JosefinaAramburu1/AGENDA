@@ -501,7 +501,16 @@
 
   <!-- ================= SEMANA ================= -->
   <section class="view" id="view-semana">
-    <div class="week-toolbar">
+    <div class="section-title" style="margin-top:16px;">Objetivos de la semana</div>
+    <div class="week-toolbar" style="margin-top:0;">
+      <button class="month-nav-btn" id="goalsWeekPrev" title="Semana anterior">‹</button>
+      <div class="month-label" id="goalsWeekLabel" style="font-size:15px;"></div>
+      <button class="month-nav-btn" id="goalsWeekNext" title="Semana siguiente">›</button>
+    </div>
+    <div class="week-goals-grid" id="weekGoalsGrid"></div>
+
+    <div class="section-title">Horario de clases</div>
+    <div class="week-toolbar" style="margin-top:0;">
       <div></div>
       <button class="btn btn-primary" id="btnAddEvent">+ Agregar bloque</button>
     </div>
@@ -541,14 +550,6 @@
     <div class="grid-wrap">
       <div class="grid" id="weekGrid"></div>
     </div>
-
-    <div class="section-title">Objetivos de la semana</div>
-    <div class="week-toolbar" style="margin-top:0;">
-      <button class="month-nav-btn" id="goalsWeekPrev" title="Semana anterior">‹</button>
-      <div class="month-label" id="goalsWeekLabel" style="font-size:15px;"></div>
-      <button class="month-nav-btn" id="goalsWeekNext" title="Semana siguiente">›</button>
-    </div>
-    <div class="week-goals-grid" id="weekGoalsGrid"></div>
   </section>
 
   <!-- ================= MES ================= -->
