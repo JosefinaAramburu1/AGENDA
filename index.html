@@ -327,8 +327,12 @@
   .goal-tile{
     background:var(--surface); border:1.5px solid var(--border); border-radius:12px;
     padding:12px 6px; display:flex; flex-direction:column; align-items:center; gap:3px;
-    font-family:var(--font-body); transition:transform .1s;
+    font-family:var(--font-body); transition:transform .1s; position:relative;
   }
+  .goal-tile.has-due::after{
+    content:''; position:absolute; top:7px; right:7px; width:7px; height:7px; border-radius:50%; background:var(--danger);
+  }
+  .goal-tile.selected.has-due::after{background:#FF8A80;}
   .goal-tile:active{transform:scale(.96);}
   .goal-tile .gt-day{
     font-size:11px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:.03em;
@@ -375,6 +379,10 @@
   .week-goal-item .txt{flex:1; line-height:1.4; word-break:break-word;}
   .week-goal-item .rm{background:none; border:none; color:var(--ink-faint); font-size:14px; padding:0; flex:none;}
   .week-goal-empty{font-size:13px; color:var(--ink-faint); padding:4px 2px;}
+  .week-goal-subtitle{
+    font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-faint);
+    margin-top:4px;
+  }
 
   #hoyTodoTitle{font-size:18px;}
   #dailyTodoList .task-title{font-size:15.5px;}
@@ -993,9 +1001,10 @@ import { createClient } from '@supabase/supabase-js';
 
       var items = state.dailyTodos.filter(function(t){ return t.date === iso; });
       var pending = items.filter(function(t){ return !t.done; }).length;
+      var hasDue = state.tasks.some(function(t){ return t.dueDate === iso; });
 
       var tile = document.createElement('button');
-      tile.className = 'goal-tile' + (isToday ? ' today' : '') + (isSelected ? ' selected' : '');
+      tile.className = 'goal-tile' + (isToday ? ' today' : '') + (isSelected ? ' selected' : '') + (hasDue ? ' has-due' : '');
       tile.innerHTML =
         '<span class="gt-day">' + WEEKDAY_CAP[dt.getDay()] + '</span>' +
         '<span class="gt-num">' + dt.getDate() + '</span>' +
@@ -1033,6 +1042,21 @@ import { createClient } from '@supabase/supabase-js';
     var dayLabel = dayNames[dt.getDay()];
     head.innerHTML = (isToday ? 'Hoy · ' : '') + dayLabel.charAt(0).toUpperCase() + dayLabel.slice(1) + '<span class="d">' + fmtDate(dt) + '</span>';
     col.appendChild(head);
+
+    var dueTasks = state.tasks.filter(function(t){ return t.dueDate === iso; });
+    if (dueTasks.length > 0){
+      var dueTitle = document.createElement('div');
+      dueTitle.className = 'week-goal-subtitle';
+      dueTitle.textContent = 'Entregas';
+      col.appendChild(dueTitle);
+      dueTasks.forEach(function(t){
+        col.appendChild(renderTaskRow(t));
+      });
+      var goalsTitle = document.createElement('div');
+      goalsTitle.className = 'week-goal-subtitle';
+      goalsTitle.textContent = 'Objetivos';
+      col.appendChild(goalsTitle);
+    }
 
     var addRow = document.createElement('div');
     addRow.className = 'week-goal-add';
@@ -1827,6 +1851,8 @@ import { createClient } from '@supabase/supabase-js';
       save();
       renderTasks();
       renderMonth();
+      renderWeekGoals();
+      renderHoy();
     });
 
     var main = document.createElement('div');
@@ -1855,6 +1881,7 @@ import { createClient } from '@supabase/supabase-js';
     edit.title = 'Editar';
     edit.addEventListener('click', function(){
       ui.editingTaskId = t.id;
+      switchView('tareas');
       renderTasks();
     });
 
@@ -1868,6 +1895,8 @@ import { createClient } from '@supabase/supabase-js';
       save();
       renderTasks();
       renderMonth();
+      renderWeekGoals();
+      renderHoy();
     });
 
     row.appendChild(check);
