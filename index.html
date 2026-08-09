@@ -344,12 +344,8 @@
   .goal-tile.today{border-color:var(--now); border-width:2px;}
   .goal-tile.today .gt-day{color:var(--now);}
   .goal-tile.today .gt-num{color:var(--now);}
-  .goal-tile.selected{background:var(--ink); border-color:var(--ink);}
-  .goal-tile.selected .gt-day{color:#F2C14E;}
-  .goal-tile.selected .gt-num{color:#fff;}
-  .goal-tile.selected.today .gt-day, .goal-tile.selected.today .gt-num{color:#FF8A80;}
-  .goal-tile.selected .gt-count{background:rgba(255,255,255,.18); color:#fff;}
-  .goal-tile.selected .gt-count.empty{color:rgba(255,255,255,.6);}
+  .goal-tile.selected{box-shadow:inset 0 -3px 0 var(--accent);}
+  .goal-tile.selected.today{box-shadow:inset 0 -3px 0 var(--now);}
 
   .week-goal-col{
     background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--accent); border-radius:var(--radius-sm); padding:14px 16px;
