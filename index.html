@@ -984,6 +984,7 @@ import { createClient } from '@supabase/supabase-js';
       del.innerHTML = '✕';
       del.title = 'Eliminar';
       del.addEventListener('click', function(){
+        if (!confirm('¿Eliminar "' + t.text + '"?')) return;
         state.dailyTodos = state.dailyTodos.filter(function(x){ return x.id !== t.id; });
         save();
         renderDailyTodos();
@@ -1175,6 +1176,7 @@ import { createClient } from '@supabase/supabase-js';
         rm.className = 'rm';
         rm.innerHTML = '✕';
         rm.addEventListener('click', function(){
+          if (!confirm('¿Eliminar "' + t.text + '"?')) return;
           state.dailyTodos = state.dailyTodos.filter(function(x){ return x.id !== t.id; });
           save();
           renderWeekGoals();
