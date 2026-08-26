@@ -746,10 +746,13 @@ import { createClient } from '@supabase/supabase-js';
   }
 
   function load(){
-    if (!currentUser) return Promise.resolve();
+    if (!currentUser) return Promise.resolve(false);
     return supabase.from('app_state').select('data').eq('user_id', currentUser.id).maybeSingle()
       .then(function(res){
-        if (res.error){ console.error('No se pudo cargar', res.error); state.subjects = defaultSubjects(); return; }
+        if (res.error){
+          console.error('No se pudo cargar', res.error);
+          return false; // falló la conexión: no tocamos el estado ni seguimos, para no arriesgar un guardado encima de datos reales
+        }
         var parsed = res.data && res.data.data;
         if (parsed){
           state.subjects = parsed.subjects || defaultSubjects();
@@ -759,12 +762,14 @@ import { createClient } from '@supabase/supabase-js';
           state.dailyTodos = parsed.dailyTodos || [];
           state.scheduleSeeded = parsed.scheduleSeeded || false;
         } else {
+          // acá sí es legítimo: esta cuenta todavía no tiene ninguna fila guardada (recién creada)
           state.subjects = defaultSubjects();
         }
+        return true;
       })
       .catch(function(e){
         console.error('Error de conexión con Supabase', e);
-        state.subjects = defaultSubjects();
+        return false;
       });
   }
 
@@ -2787,7 +2792,16 @@ import { createClient } from '@supabase/supabase-js';
 
   function bootstrapData(){
     document.getElementById('loading').style.display = 'block';
-    load().then(function(){
+    document.getElementById('loading').innerHTML = 'Cargando tu organizador…';
+    load().then(function(ok){
+      if (!ok){
+        document.getElementById('loading').innerHTML =
+          '⚠️ No se pudo conectar para traer tus datos. No se modificó ni se borró nada — ' +
+          '<button class="link-btn" id="retryLoadBtn" style="font-weight:700;">tocá acá para reintentar</button>.';
+        var retryBtn = document.getElementById('retryLoadBtn');
+        if (retryBtn) retryBtn.addEventListener('click', bootstrapData);
+        return;
+      }
       if (state.events.length === 0) seedDefaultEvents();
       rolloverDailyTodos();
       document.getElementById('loading').style.display = 'none';
