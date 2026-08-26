@@ -715,9 +715,8 @@ import { createClient } from '@supabase/supabase-js';
   ];
 
   function defaultSubjects(){
-    return DEFAULT_SUBJECT_NAMES.map(function(name, i){
-      return { id: uid('subj'), name: name, color: PALETTE[i % PALETTE.length], totalClasses: 0, absences: 0 };
-    });
+    // cuenta nueva: arranca en blanco, sin materias precargadas
+    return [];
   }
 
   function subjectById(id){
@@ -2802,7 +2801,6 @@ import { createClient } from '@supabase/supabase-js';
         if (retryBtn) retryBtn.addEventListener('click', bootstrapData);
         return;
       }
-      if (state.events.length === 0) seedDefaultEvents();
       rolloverDailyTodos();
       document.getElementById('loading').style.display = 'none';
       renderAll();
